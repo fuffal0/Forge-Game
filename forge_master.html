@@ -439,6 +439,58 @@
             box-shadow: 0 6px 16px rgba(255, 140, 66, 0.3);
         }
 
+        /* Toggle Switch Styles */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #4a4a4a;
+            transition: 0.3s;
+            border-radius: 30px;
+            border: 2px solid #654321;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 2px;
+            bottom: 2px;
+            background-color: #c4a57b;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background-color: #4a9eff;
+        }
+
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(30px);
+            background-color: #ffd700;
+        }
+
+        .toggle-slider:hover {
+            box-shadow: 0 0 8px rgba(74, 158, 255, 0.5);
+        }
+
         .progress-bar {
             width: 100%;
             height: 24px;
@@ -530,14 +582,50 @@
     </style>
 </head>
 <body>
-    <!-- Save/Load Menu -->
-    <button class="menu-button" onclick="showSaveLoadMenu()">💾 Save/Load</button>
-    <div id="lastSavedIndicator" style="position: fixed; top: 70px; right: 20px; z-index: 998; color: #c4a57b; font-size: 0.85em; font-family: 'Crimson Text', serif; text-align: right; opacity: 0.8;"></div>
+    <!-- Options Menu Button -->
+    <button class="menu-button" onclick="showOptionsMenu()">⚙️ Options</button>
 
+    <!-- Options Menu Modal -->
+    <div id="optionsMenu" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <h2>⚙️ Options</h2>
+            
+            <!-- Settings Section -->
+            <div style="background: rgba(74, 37, 17, 0.3); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <h3 style="color: #ff8c42; margin-top: 0;">Settings</h3>
+                
+                <!-- Auto-save Toggle -->
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(26, 26, 26, 0.5); border-radius: 6px; margin-bottom: 10px;">
+                    <div>
+                        <div style="color: #ffd700; font-weight: bold; margin-bottom: 3px;">Auto-Save</div>
+                        <div style="color: #c4a57b; font-size: 0.9em;">Automatically save your progress every 2 minutes</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="autoSaveToggle" checked onchange="toggleAutoSave()">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                
+                <div id="lastSavedIndicator" style="color: #888; font-size: 0.9em; text-align: center; margin-top: 10px;">Last saved: Never</div>
+            </div>
+            
+            <!-- Save/Load Section -->
+            <div style="background: rgba(74, 37, 17, 0.3); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <h3 style="color: #ff8c42; margin-top: 0;">💾 Save & Load</h3>
+                <div id="saveSlots"></div>
+            </div>
+            
+            <div style="text-align: center;">
+                <button onclick="hideOptionsMenu()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Legacy Save/Load Menu (kept for compatibility, redirects to options) -->
     <div id="saveLoadMenu" class="modal">
         <div class="modal-content" style="max-width: 700px;">
             <h2>💾 Save & Load Game</h2>
-            <div id="saveSlots"></div>
+            <div id="saveSlots2"></div>
             <div style="text-align: center; margin-top: 20px;">
                 <button onclick="hideSaveLoadMenu()">Close</button>
             </div>
@@ -1364,7 +1452,9 @@
             questProgress: {}, // Track progress for current quest
             completedQuests: [], // History of completed quest IDs
             questsCompleted: 0, // Total count
-            weaponTypeCrafted: {} // Track crafts by weapon type for quests
+            weaponTypeCrafted: {}, // Track crafts by weapon type for quests
+            // Settings
+            autoSaveEnabled: true // Auto-save toggle (on by default)
         };
 
         // ============================================
@@ -1674,7 +1764,7 @@
             const saveData = {
                 ...gameState,
                 saveDate: gameState.lastSaved,
-                version: '1.0'
+                version: '1.2'
             };
             localStorage.setItem(`forgeMasterSave${slot}`, JSON.stringify(saveData));
             // Don't log saves to activity log anymore
@@ -1685,6 +1775,12 @@
             if (saved) {
                 const loaded = JSON.parse(saved);
                 Object.assign(gameState, loaded);
+                
+                // Ensure autoSaveEnabled exists (for older saves)
+                if (gameState.autoSaveEnabled === undefined) {
+                    gameState.autoSaveEnabled = true;
+                }
+                
                 document.getElementById('forgeNameDisplay').textContent = gameState.forgeName;
                 document.getElementById('startupModal').classList.remove('active');
                 clearLog(); // Clear old log entries
@@ -1729,6 +1825,32 @@
 
         function hideSaveLoadMenu() {
             document.getElementById('saveLoadMenu').classList.remove('active');
+        }
+
+        // Options Menu Functions
+        function showOptionsMenu() {
+            // Hide startup modal if it's showing
+            document.getElementById('startupModal').classList.remove('active');
+            const menu = document.getElementById('optionsMenu');
+            menu.classList.add('active');
+            updateSaveLoadUI();
+            
+            // Update autosave toggle state
+            document.getElementById('autoSaveToggle').checked = gameState.autoSaveEnabled;
+        }
+
+        function hideOptionsMenu() {
+            document.getElementById('optionsMenu').classList.remove('active');
+        }
+
+        function toggleAutoSave() {
+            gameState.autoSaveEnabled = document.getElementById('autoSaveToggle').checked;
+            
+            if (gameState.autoSaveEnabled) {
+                log('Auto-save enabled', 'info');
+            } else {
+                log('Auto-save disabled - remember to save manually!', 'warning');
+            }
         }
 
         function updateSaveLoadUI() {
@@ -2857,7 +2979,10 @@
                 checkQuestCompletion();
             }
 
-            saveGame();
+            // Auto-save (if enabled)
+            if (gameState.autoSaveEnabled) {
+                saveGame();
+            }
         }
 
         function updateQuestUI() {
