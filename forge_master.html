@@ -57,6 +57,20 @@
             50% { transform: translateX(0%) translateY(0%) rotate(180deg); }
         }
 
+        @keyframes hammerStrike {
+            0%, 100% { transform: translateY(0) rotate(-15deg); }
+            50% { transform: translateY(-10px) rotate(15deg); }
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .forging-active #hammerIcon {
+            animation: hammerStrike 0.6s ease-in-out infinite;
+        }
+
         h1 {
             font-family: 'Cinzel', serif;
             color: #ff8c42;
@@ -685,6 +699,32 @@
                     </div>
                 </div>
 
+                <!-- XP Progress Bar -->
+                <div style="margin: 15px 0; padding: 10px; background: rgba(74, 37, 17, 0.3); border-radius: 8px; border: 1px solid #4a2511;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span style="color: #ffd700; font-size: 0.9em; font-weight: bold;">Experience</span>
+                        <span style="color: #c4a57b; font-size: 0.85em;" id="xpProgressText">0 / 100 XP</span>
+                    </div>
+                    <div style="background: #1a1a1a; border: 1px solid #4a4a4a; border-radius: 6px; height: 16px; overflow: hidden; position: relative;">
+                        <div id="xpProgressBar" style="background: linear-gradient(90deg, #ffd700, #ff8c42); height: 100%; width: 0%; transition: width 0.3s;"></div>
+                        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.75em; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);" id="xpProgressPercent">0%</div>
+                    </div>
+                    <div style="color: #888; font-size: 0.8em; margin-top: 3px; text-align: center;" id="xpNextLevel">Next Level: 2</div>
+                </div>
+
+                <!-- Reputation Progress Bar -->
+                <div style="margin: 15px 0; padding: 10px; background: rgba(74, 37, 17, 0.3); border-radius: 8px; border: 1px solid #4a2511;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span style="color: #ff8c42; font-size: 0.9em; font-weight: bold;">Rank Progress</span>
+                        <span style="color: #c4a57b; font-size: 0.85em;" id="repProgressText">0 / 500 Rep</span>
+                    </div>
+                    <div style="background: #1a1a1a; border: 1px solid #4a4a4a; border-radius: 6px; height: 16px; overflow: hidden; position: relative;">
+                        <div id="repProgressBar" style="background: linear-gradient(90deg, #ff8c42, #ff4444); height: 100%; width: 0%; transition: width 0.3s;"></div>
+                        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.75em; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);" id="repProgressPercent">0%</div>
+                    </div>
+                    <div style="color: #888; font-size: 0.8em; margin-top: 3px; text-align: center;" id="repNextRank">Next Rank: Apprentice Blacksmith</div>
+                </div>
+
                 <div id="levelUpAlert" style="display: none; background: rgba(255, 215, 0, 0.2); padding: 15px; border-radius: 8px; border: 2px solid #ffd700; margin-bottom: 20px; text-align: center;">
                     <div style="color: #ffd700; font-size: 1.2em; font-weight: bold; margin-bottom: 10px;">LEVEL UP!</div>
                     <div style="color: #e8d5b7; margin-bottom: 10px;">You have <span id="statPointsAvailable">0</span> stat points to distribute</div>
@@ -722,19 +762,67 @@
             <div class="panel">
                 <h2>🔨 Actions</h2>
                 <div class="tabs">
-                    <button class="tab-btn active" onclick="switchTab('craft')">Craft</button>
-                    <button class="tab-btn" onclick="switchTab('shop')">Shop</button>
-                    <button class="tab-btn" onclick="switchTab('buy')">Buy</button>
-                    <button class="tab-btn" onclick="switchTab('stats')">Stats</button>
-                    <button class="tab-btn" onclick="switchTab('gear')">Gear</button>
-                    <button class="tab-btn" onclick="switchTab('upgrade')">Upgrades</button>
-                    <button class="tab-btn" onclick="switchTab('market')">Market</button>
-                    <button class="tab-btn" onclick="switchTab('services')">Services</button>
-                    <button class="tab-btn" onclick="switchTab('notices')">Notice Board</button>
-                    <button class="tab-btn" onclick="switchTab('achievements')">Achievements</button>
+                    <button id="tab-craft" class="tab-btn active" onclick="switchTab('craft')">Craft</button>
+                    <button id="tab-shop" class="tab-btn" onclick="switchTab('shop')">Shop</button>
+                    <button id="tab-buy" class="tab-btn" onclick="switchTab('buy')">Buy</button>
+                    <button id="tab-stats" class="tab-btn" onclick="switchTab('stats')" style="display: none;">Stats</button>
+                    <button id="tab-gear" class="tab-btn" onclick="switchTab('gear')" style="display: none;">Gear</button>
+                    <button id="tab-upgrade" class="tab-btn" onclick="switchTab('upgrade')" style="display: none;">Upgrades</button>
+                    <button id="tab-market" class="tab-btn" onclick="switchTab('market')" style="display: none;">Market</button>
+                    <button id="tab-services" class="tab-btn" onclick="switchTab('services')" style="display: none;">Services</button>
+                    <button id="tab-notices" class="tab-btn" onclick="switchTab('notices')" style="display: none;">Notice Board</button>
+                    <button id="tab-achievements" class="tab-btn" onclick="switchTab('achievements')" style="display: none;">Achievements</button>
                 </div>
 
                 <div id="craft-tab" class="tab-content active">
+                    <!-- Focus Bar -->
+                    <div style="margin-bottom: 20px; padding: 12px; background: rgba(74, 37, 17, 0.3); border-radius: 8px; border: 1px solid #4a2511;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <span style="color: #4a9eff; font-weight: bold;">🧠 Focus</span>
+                            <span style="color: #c4a57b; font-size: 0.9em;" id="focusText">100 / 100</span>
+                        </div>
+                        <div style="background: #1a1a1a; border: 1px solid #4a4a4a; border-radius: 6px; height: 14px; overflow: hidden;">
+                            <div id="focusBar" style="background: linear-gradient(90deg, #4a9eff, #00d4ff); height: 100%; width: 100%; transition: width 0.3s;"></div>
+                        </div>
+                        <div style="margin-top: 8px; display: flex; gap: 5px;">
+                            <button onclick="takeForcedBreak()" style="font-size: 0.85em; padding: 4px 10px;">Take Break (+30)</button>
+                            <button onclick="meditate()" style="font-size: 0.85em; padding: 4px 10px;">Meditate (Full)</button>
+                        </div>
+                    </div>
+
+                    <!-- Forging Animation Panel -->
+                    <div id="forgingPanel" style="display: none; margin-bottom: 20px; padding: 20px; background: linear-gradient(135deg, #2a1810, #1a0f08); border-radius: 12px; border: 2px solid #ff8c42; text-align: center;">
+                        <div style="color: #ffd700; font-size: 1.3em; font-weight: bold; margin-bottom: 10px; font-family: 'Cinzel', serif;">
+                            ⚒️ FORGING IN PROGRESS ⚒️
+                        </div>
+                        <div style="color: #ff8c42; font-size: 1.1em; margin-bottom: 15px;" id="forgingWeaponName">Iron Sword</div>
+                        
+                        <!-- Progress Bar -->
+                        <div style="margin: 20px 0;">
+                            <div style="background: #1a1a1a; border: 2px solid #8b4513; border-radius: 8px; height: 24px; overflow: hidden; position: relative;">
+                                <div id="forgingProgressBar" style="background: linear-gradient(90deg, #ff8c42, #ffd700, #ff8c42); height: 100%; width: 0%; transition: width 0.1s linear;"></div>
+                                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);" id="forgingProgressText">0%</div>
+                            </div>
+                        </div>
+
+                        <!-- Event Message -->
+                        <div id="forgingEventMessage" style="min-height: 60px; color: #c4a57b; font-style: italic; line-height: 1.5; margin: 15px 0;">
+                            The metal glows red-hot in the forge.<br>
+                            Your hammer rises and falls with purpose.
+                        </div>
+
+                        <!-- Worth & XP Display (shown on completion) -->
+                        <div id="forgingResultsDisplay" style="display: none; margin: 15px 0; padding: 15px; background: rgba(255, 215, 0, 0.1); border-radius: 8px; border: 1px solid #ffd700;">
+                            <div style="color: #ffd700; font-size: 1.2em; font-weight: bold; margin-bottom: 8px;" id="forgingResultRarity">COMMON</div>
+                            <div style="color: #c4a57b; margin-bottom: 5px;">Worth: <span style="color: #4CAF50; font-weight: bold;" id="forgingResultWorth">0g</span></div>
+                            <div style="color: #c4a57b;">Experience: <span style="color: #4a9eff; font-weight: bold;" id="forgingResultXP">0 XP</span></div>
+                        </div>
+
+                        <!-- Hammer Animation -->
+                        <div style="font-size: 3em; margin: 10px 0;" id="hammerIcon">🔨</div>
+                    </div>
+
+                    <!-- Crafting Options -->
                     <div id="craftingOptions"></div>
                 </div>
 
@@ -969,6 +1057,75 @@
             }
         ];
 
+        // ============================================
+        // PHASE 2 - OVERGEARED CRAFTING SYSTEM
+        // ============================================
+
+        // Forging Configuration
+        const FORGING_CONFIG = {
+            baseDuration: 4000, // 4 seconds base forging time
+            focusCostPerCraft: {
+                iron: 10,
+                steel: 15,
+                silver: 20,
+                mithril: 25,
+                adamantine: 30
+            },
+            focusRegenRate: 1, // 1 FP per minute
+            focusRegenInterval: 60000, // 1 minute in ms
+            
+            // Technique modifiers
+            techniques: {
+                standard: { timeMultiplier: 1.0, qualityMultiplier: 1.0, name: 'Standard Forging' },
+                careful: { timeMultiplier: 2.0, qualityMultiplier: 1.3, name: 'Careful Craftsmanship' },
+                rapid: { timeMultiplier: 0.5, qualityMultiplier: 0.8, name: 'Rapid Forging' }
+            }
+        };
+
+        // Forging Events (occur during crafting)
+        const FORGING_EVENTS = {
+            positive: [
+                { id: 'perfect_strike', name: 'Perfect Strike!', desc: 'Your hammer finds the ideal rhythm.', qualityBonus: 12, chance: 0.10 },
+                { id: 'material_resonance', name: 'Material Resonance', desc: 'The metal sings under your touch.', qualityBonus: 15, masteryBonus: 2, chance: 0.08 },
+                { id: 'moment_clarity', name: 'Moment of Clarity', desc: 'A flash of inspiration strikes!', qualityBonus: 20, chance: 0.05 },
+                { id: 'steady_hands', name: 'Steady Hands', desc: 'Your control is impeccable.', qualityBonus: 8, failReduction: 0.5, chance: 0.12 },
+                { id: 'flow_state', name: 'Flow State', desc: 'Time seems to slow...', qualityBonus: 10, focusRefund: 5, chance: 0.07 }
+            ],
+            negative: [
+                { id: 'distraction', name: 'Distraction', desc: 'Your focus wavers momentarily.', qualityPenalty: 5, chance: 0.08 },
+                { id: 'impurity', name: 'Impurity Found', desc: 'The material resists your efforts.', qualityPenalty: 10, chance: 0.06 },
+                { id: 'timing_off', name: 'Timing Off', desc: 'Your rhythm breaks.', qualityPenalty: 8, failIncrease: 0.1, chance: 0.07 },
+                { id: 'exhaustion', name: 'Exhaustion Creeps In', desc: 'Your arms begin to tire.', qualityPenalty: 6, focusCost: 3, chance: 0.05 }
+            ],
+            neutral: [
+                { id: 'perfect_moment', name: 'Perfect Moment!', desc: 'Strike NOW for a bonus!', type: 'timing', qualityBonus: 15, chance: 0.15 }
+            ]
+        };
+
+        // Crafting Insights
+        const INSIGHTS = {
+            material: [
+                { id: 'iron_nature', name: "Iron's True Nature", desc: 'Iron is honest metal - what you put in, you get out.', effect: '+5% quality on Iron weapons', material: 'iron', bonus: 0.05, requirement: { ironCrafts: 50 } },
+                { id: 'steel_patience', name: 'Steel Requires Patience', desc: 'Steel rewards the patient smith.', effect: '-5% fail rate on Steel', material: 'steel', failReduction: 0.05, requirement: { steelCrafts: 40 } },
+                { id: 'silver_temperament', name: "Silver's Temperament", desc: 'Silver is temperamental but responsive.', effect: '+8% quality on Silver', material: 'silver', bonus: 0.08, requirement: { silverCrafts: 30 } },
+                { id: 'mithril_mysteries', name: 'Mithril Mysteries', desc: 'Mithril holds secrets for those who listen.', effect: '+10% quality on Mithril', material: 'mithril', bonus: 0.10, requirement: { mithrilCrafts: 20 } },
+                { id: 'adamantine_mastery', name: 'Adamantine Mastery', desc: 'You have reached true understanding of adamantine.', effect: '+15% quality on Adamantine', material: 'adamantine', bonus: 0.15, requirement: { adamantineCrafts: 15 } }
+            ],
+            weapon: [
+                { id: 'sword_balance', name: 'Sword Balance Principles', desc: 'Perfect balance makes a perfect blade.', effect: '+5% quality on Swords', weapon: 'sword', bonus: 0.05, requirement: { swordCrafts: 40 } },
+                { id: 'axe_density', name: 'Axe Head Density', desc: 'Weight and density are key to axe power.', effect: '+5% quality on Axes', weapon: 'axe', bonus: 0.05, requirement: { axeCrafts: 40 } },
+                { id: 'dagger_precision', name: 'Dagger Precision', desc: 'In daggers, precision is everything.', effect: '+5% quality on Daggers', weapon: 'dagger', bonus: 0.05, requirement: { daggerCrafts: 40 } },
+                { id: 'mace_impact', name: 'Mace Impact Force', desc: 'Maximize impact through perfect mass distribution.', effect: '+5% quality on Maces', weapon: 'mace', bonus: 0.05, requirement: { maceCrafts: 40 } },
+                { id: 'greatsword_leverage', name: 'Greatsword Leverage', desc: 'Size means nothing without leverage.', effect: '+5% quality on Greatswords', weapon: 'greatsword', bonus: 0.05, requirement: { greatswordCrafts: 40 } },
+                { id: 'warhammer_momentum', name: 'Warhammer Momentum', desc: 'Channel momentum into devastating force.', effect: '+5% quality on Warhammers', weapon: 'warhammer', bonus: 0.05, requirement: { warhammerCrafts: 40 } }
+            ],
+            special: [
+                { id: 'failure_wisdom', name: 'Wisdom Through Failure', desc: 'Every failure teaches a valuable lesson.', effect: '+2% quality on all crafts', bonus: 0.02, requirement: { totalFailures: 20 } },
+                { id: 'perfectionist', name: 'The Perfectionist', desc: 'You refuse to settle for anything less than excellence.', effect: '+3% quality on all crafts', bonus: 0.03, requirement: { perfectStrikes: 100 } },
+                { id: 'flow_master', name: 'Flow Master', desc: 'You have learned to enter the zone at will.', effect: '-10% Focus cost', focusReduction: 0.10, requirement: { totalCrafted: 200 } }
+            ]
+        };
+
         // Quest System
         const QUEST_TEMPLATES = {
             // Early game quests (Level 1-5)
@@ -994,7 +1151,7 @@
                 { 
                     id: 'gold_basic', 
                     name: 'Build Wealth', 
-                    desc: 'Accumulate {count} gold',
+                    desc: 'Gain {count} gold',
                     type: 'gold',
                     target: 'amount',
                     values: [150, 200, 300],
@@ -1003,7 +1160,7 @@
                 { 
                     id: 'material_basic', 
                     name: 'Stock Up', 
-                    desc: 'Own {count} total materials',
+                    desc: 'Acquire {count} materials',
                     type: 'materials',
                     target: 'count',
                     values: [15, 20, 30],
@@ -1035,7 +1192,7 @@
                 { 
                     id: 'reputation_gain', 
                     name: 'Build Fame', 
-                    desc: 'Reach {count} reputation',
+                    desc: 'Gain {count} reputation',
                     type: 'reputation',
                     target: 'amount',
                     values: [1000, 2500, 5000],
@@ -1095,7 +1252,7 @@
                 { 
                     id: 'wealth_goal', 
                     name: 'Financial Success', 
-                    desc: 'Accumulate {count} gold',
+                    desc: 'Gain {count} gold',
                     type: 'gold',
                     target: 'amount',
                     values: [2000, 5000, 10000],
@@ -1186,6 +1343,41 @@
             if (rep >= 2000) return 'Renowned Blacksmith';
             if (rep >= 500) return 'Apprentice Blacksmith';
             return 'Novice Blacksmith';
+        }
+
+        function getNextRankInfo() {
+            const rep = gameState.reputation;
+            const ranks = [
+                { threshold: 0, name: 'Novice Blacksmith' },
+                { threshold: 500, name: 'Apprentice Blacksmith' },
+                { threshold: 2000, name: 'Renowned Blacksmith' },
+                { threshold: 5000, name: 'Skilled Blacksmith' },
+                { threshold: 10000, name: 'Expert Blacksmith' },
+                { threshold: 25000, name: 'Master Blacksmith' },
+                { threshold: 50000, name: 'Legendary Blacksmith' },
+                { threshold: 100000, name: 'Blacksmith of Legend' }
+            ];
+            
+            for (let i = 0; i < ranks.length; i++) {
+                if (rep < ranks[i].threshold) {
+                    return {
+                        nextRank: ranks[i].name,
+                        nextThreshold: ranks[i].threshold,
+                        currentThreshold: i > 0 ? ranks[i - 1].threshold : 0,
+                        progress: rep - (i > 0 ? ranks[i - 1].threshold : 0),
+                        required: ranks[i].threshold - (i > 0 ? ranks[i - 1].threshold : 0)
+                    };
+                }
+            }
+            
+            // Max rank achieved
+            return {
+                nextRank: 'MAX RANK',
+                nextThreshold: 100000,
+                currentThreshold: 100000,
+                progress: 0,
+                required: 1
+            };
         }
 
         function getCurrentSeason() {
@@ -1453,8 +1645,59 @@
             completedQuests: [], // History of completed quest IDs
             questsCompleted: 0, // Total count
             weaponTypeCrafted: {}, // Track crafts by weapon type for quests
+            justGeneratedQuest: false, // Prevent immediate completion check after generating quest
             // Settings
-            autoSaveEnabled: true // Auto-save toggle (on by default)
+            autoSaveEnabled: true, // Auto-save toggle (on by default)
+            // Feature unlocks
+            unlockedFeatures: {
+                craft: true,
+                shop: true,
+                buy: true,
+                stats: false,      // Unlocks at level 2
+                gear: false,       // Unlocks at level 5
+                upgrade: false,    // Unlocks at level 5
+                achievements: false, // Unlocks at level 3
+                services: false,   // Unlocks at level 7
+                notices: false,    // Unlocks at level 10
+                market: false      // Unlocks at level 12
+            },
+            // Phase 2 - Overgeared Crafting System
+            // Forging state
+            isForging: false,
+            forgingProgress: 0,
+            forgingWeapon: null,
+            forgingMaterial: null,
+            forgingStartTime: 0,
+            forgingDuration: 0,
+            forgingEvents: [],
+            showingResults: false, // New flag to control results display
+            // Focus system
+            focusPoints: 100,
+            maxFocus: 100,
+            lastFocusRegen: Date.now(),
+            // Mastery system
+            materialMastery: {
+                iron: 0,
+                steel: 0,
+                silver: 0,
+                mithril: 0,
+                adamantine: 0
+            },
+            weaponMastery: {
+                dagger: 0,
+                sword: 0,
+                axe: 0,
+                mace: 0,
+                greatsword: 0,
+                warhammer: 0
+            },
+            // Insights & discoveries
+            insights: [], // Array of discovered insight IDs
+            craftingTechnique: 'standard', // Current technique
+            // Statistics
+            totalStrikes: 0,
+            perfectStrikes: 0,
+            forgingTime: 0 // Total time spent forging in seconds
         };
 
         // ============================================
@@ -1571,7 +1814,7 @@
             gameState.activeQuest = quest;
             gameState.questProgress = getInitialQuestProgress(quest);
             
-            log(`📋 New Quest: ${quest.name} - ${quest.desc}`, 'info');
+            // No log message - quest is visible in quest panel
         }
 
         function getInitialQuestProgress(quest) {
@@ -1583,16 +1826,20 @@
             } else if (quest.type === 'sell') {
                 progress.current = 0; // Count sales during quest
             } else if (quest.type === 'gold') {
-                progress.current = gameState.gold; // Track from current
-                progress.startGold = gameState.gold;
+                progress.startGold = gameState.gold; // Track starting gold
+                progress.current = gameState.gold; // Current gold
             } else if (quest.type === 'reputation') {
-                progress.current = gameState.reputation;
+                progress.startReputation = gameState.reputation; // Track starting reputation
+                progress.current = gameState.reputation; // Current reputation
             } else if (quest.type === 'materials') {
-                progress.current = Object.values(gameState.materials).reduce((sum, count) => sum + count, 0);
+                const totalMaterials = Object.values(gameState.materials).reduce((sum, count) => sum + count, 0);
+                progress.startMaterials = totalMaterials; // Track starting amount
+                progress.current = totalMaterials; // Current total
             } else if (quest.type === 'rarity') {
-                progress.current = gameState.bestRarity;
+                progress.current = gameState.bestRarity; // This is achievement-style, not accumulation
             } else if (quest.type === 'upgrades') {
-                progress.current = Object.keys(gameState.upgrades).length;
+                progress.startUpgrades = Object.keys(gameState.upgrades).length; // Track starting upgrades
+                progress.current = Object.keys(gameState.upgrades).length; // Current upgrades
             } else if (quest.type === 'craftType') {
                 progress.current = gameState.weaponTypeCrafted[quest.targetWeaponType] || 0;
                 progress.startCount = progress.current;
@@ -1620,7 +1867,8 @@
             } else if (quest.type === 'reputation' && action === 'repChange') {
                 progress.current = gameState.reputation;
             } else if (quest.type === 'materials' && action === 'materialChange') {
-                progress.current = Object.values(gameState.materials).reduce((sum, count) => sum + count, 0);
+                const currentTotal = Object.values(gameState.materials).reduce((sum, count) => sum + count, 0);
+                progress.current = currentTotal; // Update current total
             } else if (quest.type === 'rarity' && action === 'craft') {
                 progress.current = gameState.bestRarity;
             } else if (quest.type === 'upgrades' && action === 'upgrade') {
@@ -1644,10 +1892,25 @@
             let isComplete = false;
             
             if (quest.type === 'rarity') {
+                // Achievement-style: need to reach this rarity level
                 isComplete = progress.current >= quest.requirement;
             } else if (quest.type === 'rival') {
+                // Count rivals defeated during quest
                 isComplete = progress.current >= quest.requirement;
+            } else if (quest.type === 'materials') {
+                // Check if current total meets the requirement (starting amount + target)
+                isComplete = progress.current >= (progress.startMaterials + quest.requirement);
+            } else if (quest.type === 'gold') {
+                // Check if gold reached the target (starting + requirement)
+                isComplete = progress.current >= (progress.startGold + quest.requirement);
+            } else if (quest.type === 'reputation') {
+                // Check if reputation reached the target (starting + requirement)
+                isComplete = progress.current >= (progress.startReputation + quest.requirement);
+            } else if (quest.type === 'upgrades') {
+                // Check if upgrades reached the target (starting + requirement)
+                isComplete = progress.current >= (progress.startUpgrades + quest.requirement);
             } else {
+                // For craft, sell, craftType (already tracking increments)
                 isComplete = progress.current >= quest.requirement;
             }
             
@@ -1683,11 +1946,18 @@
             gameState.activeQuest = null;
             gameState.questProgress = {};
             
+            // Prevent immediate quest checking
+            gameState.justGeneratedQuest = true;
+            
             // Generate new quest after short delay
             setTimeout(() => {
                 if (!gameState.activeQuest) {
                     startQuest();
-                    updateUI();
+                    // Allow quest checking after a brief moment
+                    setTimeout(() => {
+                        gameState.justGeneratedQuest = false;
+                        updateUI();
+                    }, 100);
                 }
             }, 2000);
             
@@ -1707,6 +1977,26 @@
                 return progress.current >= quest.requirement ? `${targetRarity} ✓` : `Current: ${currentRarity}`;
             } else if (quest.type === 'rival') {
                 return `${progress.current}/${quest.requirement}`;
+            } else if (quest.type === 'materials') {
+                // Show materials gained since quest started
+                const gained = progress.current - (progress.startMaterials || 0);
+                const displayGained = Math.max(0, Math.min(gained, quest.requirement));
+                return `${displayGained}/${quest.requirement}`;
+            } else if (quest.type === 'gold') {
+                // Show gold gained since quest started
+                const gained = progress.current - (progress.startGold || 0);
+                const displayGained = Math.max(0, Math.min(gained, quest.requirement));
+                return `${displayGained}/${quest.requirement}`;
+            } else if (quest.type === 'reputation') {
+                // Show reputation gained since quest started
+                const gained = progress.current - (progress.startReputation || 0);
+                const displayGained = Math.max(0, Math.min(gained, quest.requirement));
+                return `${displayGained}/${quest.requirement}`;
+            } else if (quest.type === 'upgrades') {
+                // Show upgrades purchased since quest started
+                const gained = progress.current - (progress.startUpgrades || 0);
+                const displayGained = Math.max(0, Math.min(gained, quest.requirement));
+                return `${displayGained}/${quest.requirement}`;
             } else {
                 const current = Math.min(progress.current, quest.requirement);
                 return `${current}/${quest.requirement}`;
@@ -1719,8 +2009,90 @@
             const quest = gameState.activeQuest;
             const progress = gameState.questProgress;
             
+            if (quest.type === 'materials') {
+                // Calculate percentage based on materials gained
+                const gained = progress.current - (progress.startMaterials || 0);
+                const percentage = Math.min(100, Math.floor((gained / quest.requirement) * 100));
+                return Math.max(0, percentage);
+            } else if (quest.type === 'gold') {
+                // Calculate percentage based on gold gained
+                const gained = progress.current - (progress.startGold || 0);
+                const percentage = Math.min(100, Math.floor((gained / quest.requirement) * 100));
+                return Math.max(0, percentage);
+            } else if (quest.type === 'reputation') {
+                // Calculate percentage based on reputation gained
+                const gained = progress.current - (progress.startReputation || 0);
+                const percentage = Math.min(100, Math.floor((gained / quest.requirement) * 100));
+                return Math.max(0, percentage);
+            } else if (quest.type === 'upgrades') {
+                // Calculate percentage based on upgrades purchased
+                const gained = progress.current - (progress.startUpgrades || 0);
+                const percentage = Math.min(100, Math.floor((gained / quest.requirement) * 100));
+                return Math.max(0, percentage);
+            }
+            
             const percentage = Math.min(100, Math.floor((progress.current / quest.requirement) * 100));
             return percentage;
+        }
+
+        // ============================================
+        // FEATURE UNLOCK SYSTEM
+        // ============================================
+
+        function checkFeatureUnlocks() {
+            const level = gameState.level;
+            const unlocks = gameState.unlockedFeatures;
+            let newUnlocks = [];
+
+            // Check each feature unlock threshold
+            if (level >= 2 && !unlocks.stats) {
+                unlocks.stats = true;
+                newUnlocks.push({ name: 'Stats', desc: 'Distribute stat points to improve your skills!' });
+            }
+            if (level >= 3 && !unlocks.achievements) {
+                unlocks.achievements = true;
+                newUnlocks.push({ name: 'Achievements', desc: 'Track your progress with 40+ achievements!' });
+            }
+            if (level >= 5 && !unlocks.gear) {
+                unlocks.gear = true;
+                newUnlocks.push({ name: 'Gear Crafting', desc: 'Craft equipment to boost your abilities!' });
+            }
+            if (level >= 5 && !unlocks.upgrade) {
+                unlocks.upgrade = true;
+                newUnlocks.push({ name: 'Upgrades', desc: 'Permanent improvements to your forge!' });
+            }
+            if (level >= 7 && !unlocks.services) {
+                unlocks.services = true;
+                newUnlocks.push({ name: 'Services', desc: 'Access loans, contracts, and spiritual services!' });
+            }
+            if (level >= 10 && !unlocks.notices) {
+                unlocks.notices = true;
+                newUnlocks.push({ name: 'Notice Board', desc: 'Stay informed about world events and opportunities!' });
+            }
+            if (level >= 12 && !unlocks.market) {
+                unlocks.market = true;
+                newUnlocks.push({ name: 'Market Intelligence', desc: 'Monitor your rivals and market position!' });
+            }
+
+            // No log messages for feature unlocks - they appear naturally in UI
+            newUnlocks.forEach(unlock => {
+                // Feature unlocked silently
+            });
+
+            return newUnlocks;
+        }
+
+        function updateTabVisibility() {
+            const unlocks = gameState.unlockedFeatures;
+            
+            // Update tab button visibility
+            document.getElementById('tab-stats').style.display = unlocks.stats ? 'inline-block' : 'none';
+            document.getElementById('tab-gear').style.display = unlocks.gear ? 'inline-block' : 'none';
+            document.getElementById('tab-upgrade').style.display = unlocks.upgrade ? 'inline-block' : 'none';
+            document.getElementById('tab-achievements').style.display = unlocks.achievements ? 'inline-block' : 'none';
+            document.getElementById('tab-services').style.display = unlocks.services ? 'inline-block' : 'none';
+            document.getElementById('tab-notices').style.display = unlocks.notices ? 'inline-block' : 'none';
+            document.getElementById('tab-market').style.display = unlocks.market ? 'inline-block' : 'none';
         }
 
         // ============================================
@@ -1739,6 +2111,26 @@
             }
             
             entry.textContent = `${timestamp} ${message}`;
+            entry.style.color = '#ffffff'; // White text
+            logDiv.insertBefore(entry, logDiv.firstChild);
+            
+            while (logDiv.children.length > 30) {
+                logDiv.removeChild(logDiv.lastChild);
+            }
+        }
+
+        function logColored(message, color) {
+            const logDiv = document.getElementById('gameLog');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            
+            let timestamp = '[--]';
+            if (gameState.gameTime) {
+                const month = CALENDAR.months[gameState.gameTime.month];
+                timestamp = `[Day ${gameState.gameTime.day}, ${month.name}]`;
+            }
+            
+            entry.innerHTML = `<span style="color: #ffffff;">${timestamp}</span> <span style="color: ${color};">${message}</span>`;
             logDiv.insertBefore(entry, logDiv.firstChild);
             
             while (logDiv.children.length > 30) {
@@ -1781,10 +2173,26 @@
                     gameState.autoSaveEnabled = true;
                 }
                 
+                // Ensure unlockedFeatures exists (for older saves)
+                if (!gameState.unlockedFeatures) {
+                    gameState.unlockedFeatures = {
+                        craft: true,
+                        shop: true,
+                        buy: true,
+                        stats: gameState.level >= 2,
+                        gear: gameState.level >= 5,
+                        upgrade: gameState.level >= 5,
+                        achievements: gameState.level >= 3,
+                        services: gameState.level >= 7,
+                        notices: gameState.level >= 10,
+                        market: gameState.level >= 12
+                    };
+                }
+                
                 document.getElementById('forgeNameDisplay').textContent = gameState.forgeName;
                 document.getElementById('startupModal').classList.remove('active');
                 clearLog(); // Clear old log entries
-                log(`Game loaded from slot ${slot}!`, 'success');
+                // No log message for loading
                 updateUI();
                 return true;
             }
@@ -1810,7 +2218,7 @@
         function deleteSave(slot) {
             if (confirm(`Are you sure you want to delete save slot ${slot}?`)) {
                 localStorage.removeItem(`forgeMasterSave${slot}`);
-                log(`Save slot ${slot} deleted`, 'info');
+                // No log message
                 updateSaveLoadUI(); // Refresh the save/load menu
             }
         }
@@ -1845,12 +2253,7 @@
 
         function toggleAutoSave() {
             gameState.autoSaveEnabled = document.getElementById('autoSaveToggle').checked;
-            
-            if (gameState.autoSaveEnabled) {
-                log('Auto-save enabled', 'info');
-            } else {
-                log('Auto-save disabled - remember to save manually!', 'warning');
-            }
+            // No log message - setting is visible in UI
         }
 
         function updateSaveLoadUI() {
@@ -2009,7 +2412,17 @@
         // CRAFTING SYSTEM
         // ============================================
 
+        // ============================================
+        // PHASE 2 - FORGING SYSTEM
+        // ============================================
+
         function craftWeapon(weaponType, materialType) {
+            // Pre-checks
+            if (gameState.isForging) {
+                log('Already forging! Wait for current craft to complete.', 'error');
+                return;
+            }
+
             const weapon = weaponTypes[weaponType];
             const material = materials[materialType];
             const requiredMaterial = weapon.materials;
@@ -2019,27 +2432,150 @@
                 return;
             }
 
-            // Advance time based on weapon complexity
-            const craftTime = weapon.baseTime / 1000; // Convert ms to "minutes"
+            // Check focus
+            const focusCost = FORGING_CONFIG.focusCostPerCraft[materialType] || 10;
+            if (gameState.focusPoints < focusCost) {
+                log(`Not enough focus! Need ${focusCost}, have ${Math.floor(gameState.focusPoints)}. Take a break to recover.`, 'error');
+                return;
+            }
+
+            // Consume materials and focus
+            gameState.materials[materialType] -= requiredMaterial;
+            gameState.focusPoints -= focusCost;
+
+            // Start forging
+            startForging(weaponType, materialType);
+        }
+
+        function startForging(weaponType, materialType) {
+            const weapon = weaponTypes[weaponType];
+            const material = materials[materialType];
+            const technique = FORGING_CONFIG.techniques[gameState.craftingTechnique];
+
+            // Calculate forging duration
+            const baseDuration = FORGING_CONFIG.baseDuration;
+            const duration = baseDuration * technique.timeMultiplier;
+
+            // Set forging state
+            gameState.isForging = true;
+            gameState.forgingWeapon = weaponType;
+            gameState.forgingMaterial = materialType;
+            gameState.forgingStartTime = Date.now();
+            gameState.forgingDuration = duration;
+            gameState.forgingProgress = 0;
+            gameState.forgingEvents = [];
+
+            // Advance game time based on weapon complexity
+            const craftTime = weapon.baseTime / 1000;
             let timeToAdvance = craftTime;
             if (gameState.upgrades.apprenticeHired) timeToAdvance *= 0.8;
             advanceGameTime(Math.floor(timeToAdvance));
 
-            // Check for failure
+            // No log message - forging panel shows progress
+            updateUI();
+
+            // Start forging animation loop
+            forgingLoop();
+        }
+
+        function forgingLoop() {
+            if (!gameState.isForging) return;
+
+            const now = Date.now();
+            const elapsed = now - gameState.forgingStartTime;
+            const progress = Math.min(elapsed / gameState.forgingDuration, 1.0);
+            
+            gameState.forgingProgress = progress;
+
+            // Check for random events (once per 25% progress checkpoint)
+            const checkpoints = [0.25, 0.50, 0.75];
+            checkpoints.forEach(checkpoint => {
+                if (progress >= checkpoint && !gameState.forgingEvents.find(e => e.checkpoint === checkpoint)) {
+                    checkForForgingEvent(checkpoint);
+                }
+            });
+
+            updateForgingUI();
+
+            if (progress >= 1.0) {
+                completeForging();
+            } else {
+                requestAnimationFrame(forgingLoop);
+            }
+        }
+
+        function checkForForgingEvent(checkpoint) {
+            // Combine all event pools
+            const allEvents = [
+                ...FORGING_EVENTS.positive,
+                ...FORGING_EVENTS.negative,
+                ...FORGING_EVENTS.neutral
+            ];
+
+            // Roll for event
+            const roll = Math.random();
+            let cumulativeChance = 0;
+
+            for (const event of allEvents) {
+                cumulativeChance += event.chance;
+                if (roll < cumulativeChance) {
+                    // Event triggered!
+                    gameState.forgingEvents.push({
+                        ...event,
+                        checkpoint: checkpoint
+                    });
+                    
+                    // Apply immediate effects (no log message)
+                    if (event.focusRefund) {
+                        gameState.focusPoints = Math.min(gameState.maxFocus, gameState.focusPoints + event.focusRefund);
+                    }
+                    if (event.focusCost) {
+                        gameState.focusPoints = Math.max(0, gameState.focusPoints - event.focusCost);
+                    }
+                    
+                    break;
+                }
+            }
+        }
+
+        function completeForging() {
+            const weaponType = gameState.forgingWeapon;
+            const materialType = gameState.forgingMaterial;
+            const weapon = weaponTypes[weaponType];
+            const material = materials[materialType];
+
+            // Calculate if craft fails
             const failChance = calculateFailureChance(materialType);
-            if (Math.random() < failChance) {
-                gameState.materials[materialType] -= requiredMaterial;
-                gameState.totalFailures++; // Track failures
-                log(`Crafting failed! ${requiredMaterial} ${material.name} wasted. The gods were not with you.`, 'error');
-                checkAchievements(); // Check for failure-related achievements
+            const eventFailModifier = gameState.forgingEvents.reduce((sum, e) => sum + (e.failIncrease || 0) - (e.failReduction || 0), 0);
+            const finalFailChance = Math.max(0, failChance + eventFailModifier);
+
+            if (Math.random() < finalFailChance) {
+                gameState.totalFailures++;
+                gameState.isForging = false;
+                log(`Crafting failed. The weapon crumbles.`, 'error');
+                checkAchievements();
                 updateUI();
                 return;
             }
 
-            gameState.materials[materialType] -= requiredMaterial;
+            // Calculate base quality
+            let qualityScore = calculateQualityScore(material.quality);
             
-            // Calculate quality and rarity
-            const qualityScore = calculateQualityScore(material.quality);
+            // Apply technique modifier
+            const technique = FORGING_CONFIG.techniques[gameState.craftingTechnique];
+            qualityScore *= technique.qualityMultiplier;
+
+            // Apply focus modifier (low focus = worse quality)
+            const focusMultiplier = 0.7 + (gameState.focusPoints / gameState.maxFocus) * 0.6; // 0.7x to 1.3x
+            qualityScore *= focusMultiplier;
+
+            // Apply event bonuses/penalties
+            const eventQualityMod = gameState.forgingEvents.reduce((sum, e) => {
+                return sum + (e.qualityBonus || 0) - (e.qualityPenalty || 0);
+            }, 0);
+            qualityScore += eventQualityMod;
+
+            // Get rarity from quality
             const rarity = getRarityFromScore(qualityScore);
             
             // Track best rarity
@@ -2072,22 +2608,92 @@
             };
 
             gameState.weapons.push(newWeapon);
-            gameState.totalCrafted++; // Track total crafted
+            gameState.totalCrafted++;
             
-            // Track weapon type crafted for quests
+            // Track weapon type crafted
             gameState.weaponTypeCrafted[weaponType] = (gameState.weaponTypeCrafted[weaponType] || 0) + 1;
+            
+            // Update mastery
+            if (!gameState.materialMastery[materialType]) gameState.materialMastery[materialType] = 0;
+            if (!gameState.weaponMastery[weaponType]) gameState.weaponMastery[weaponType] = 0;
+            gameState.materialMastery[materialType] += 1;
+            gameState.weaponMastery[weaponType] += 1;
             
             // Add XP
             const xpGain = Math.floor(material.quality * 10 * (1 + perks.length * 0.2));
             addExperience(xpGain);
             
-            log(`Crafted a ${rarity.name} ${name}! Worth ${value} gold (+${xpGain} XP)`, 'success');
+            // Update statistics
+            gameState.forgingTime += gameState.forgingDuration / 1000;
+            gameState.totalStrikes += Math.floor(gameState.forgingDuration / 500); // ~2 strikes per second
+            
+            // Mark forging as complete and showing results
+            gameState.isForging = false;
+            gameState.showingResults = true;
+            
+            // Get DOM elements
+            const panel = document.getElementById('forgingPanel');
+            const resultsDisplay = document.getElementById('forgingResultsDisplay');
+            const eventMessage = document.getElementById('forgingEventMessage');
+            const hammerIcon = document.getElementById('hammerIcon');
+            
+            // Show results in forging panel - force it to stay visible
+            panel.style.display = 'block';
+            panel.classList.remove('forging-active');
+            document.getElementById('forgingResultRarity').textContent = rarity.name.toUpperCase();
+            document.getElementById('forgingResultRarity').style.color = rarity.color;
+            document.getElementById('forgingResultWorth').textContent = `${value}g`;
+            document.getElementById('forgingResultXP').textContent = `${xpGain} XP`;
+            resultsDisplay.style.display = 'block';
+            eventMessage.style.display = 'none';
+            hammerIcon.style.display = 'none';
+            
+            // Clean log message with colored rarity
+            logColored(`Crafted a ${rarity.name} ${name}`, rarity.color);
             
             // Update quest progress
             updateQuestProgress('craft', { weaponType: weaponType });
             
-            // Check achievements after crafting
+            // Check achievements
             checkAchievements();
+            
+            // Update UI but don't let it close the panel
+            updateUI();
+            
+            // Close forging panel after 3 seconds
+            setTimeout(() => {
+                gameState.showingResults = false;
+                panel.style.display = 'none';
+                resultsDisplay.style.display = 'none';
+                eventMessage.style.display = 'block';
+                hammerIcon.style.display = 'block';
+                updateUI();
+            }, 3000);
+        }
+
+        // Focus regeneration
+        function regenerateFocus() {
+            const now = Date.now();
+            const timeSinceLastRegen = now - gameState.lastFocusRegen;
+            
+            if (timeSinceLastRegen >= FORGING_CONFIG.focusRegenInterval) {
+                const intervalsElapsed = Math.floor(timeSinceLastRegen / FORGING_CONFIG.focusRegenInterval);
+                const focusToRecover = intervalsElapsed * FORGING_CONFIG.focusRegenRate;
+                
+                gameState.focusPoints = Math.min(gameState.maxFocus, gameState.focusPoints + focusToRecover);
+                gameState.lastFocusRegen = now;
+            }
+        }
+
+        function takeForcedBreak() {
+            gameState.focusPoints = Math.min(gameState.maxFocus, gameState.focusPoints + 30);
+            // No log message - focus bar shows change
+            updateUI();
+        }
+
+        function meditate() {
+            gameState.focusPoints = gameState.maxFocus;
+            // No log message - focus bar shows change
             updateUI();
         }
 
@@ -2099,7 +2705,16 @@
             return Math.floor(100 * Math.pow(1.5, level - 1));
         }
 
+        let isAddingExperience = false; // Prevent recursive XP loops
+
         function addExperience(amount) {
+            if (isAddingExperience) {
+                // Queue this XP to add after current batch completes
+                gameState.experience += amount;
+                return;
+            }
+            
+            isAddingExperience = true;
             gameState.experience += amount;
             
             while (gameState.experience >= getXPForLevel(gameState.level)) {
@@ -2108,8 +2723,13 @@
                 gameState.statPoints += 3;
                 log(`🎉 LEVEL UP! You are now level ${gameState.level}! You gained 3 stat points.`, 'success');
                 document.getElementById('levelUpAlert').style.display = 'block';
+                
+                // Check for feature unlocks
+                checkFeatureUnlocks();
                 checkAchievements(); // Check for level achievements
             }
+            
+            isAddingExperience = false;
             updateUI();
         }
 
@@ -2117,7 +2737,7 @@
             if (gameState.statPoints < amount) return;
             gameState.statPoints -= amount;
             gameState.stats[statName] += amount;
-            log(`Increased ${statName} by ${amount}`, 'info');
+            // No log message - stat changes are visible in UI
             updateUI();
         }
 
@@ -2225,21 +2845,14 @@
 
         function equipGear(slot, item) {
             gameState.gear[slot] = item;
-            const perkLabel = item.perkType === 'luck' ? 'Luck' : 
-                             item.perkType === 'smithing' ? 'Smithing' :
-                             item.perkType === 'efficiency' ? 'Efficiency %' :
-                             item.perkType === 'speed' ? 'Speed %' :
-                             item.perkType === 'business' ? 'Business %' :
-                             item.perkType === 'goldFind' ? 'Gold Find %' :
-                             item.perkType === 'xpBonus' ? 'XP Bonus %' : item.perkType;
-            log(`Equipped ${item.name} (+${item.perkValue} ${perkLabel})`, 'success');
+            // No log message - gear changes visible in UI
             checkAchievements(); // Check for gear-related achievements
             updateUI();
         }
 
         function unequipGear(slot) {
             delete gameState.gear[slot];
-            log(`Unequipped ${gearNames[slot]}`, 'info');
+            // No log message - gear changes visible in UI
             updateUI();
         }
 
@@ -2279,13 +2892,13 @@
             if (!weapon || !customer) return;
 
             if (weapon.value > customer.budget) {
-                log(`${customer.name} can't afford this weapon!`, 'warning');
+                // No log message - customer rejection is visible in UI
                 return;
             }
 
             const rarityIndex = rarityTiers.findIndex(t => t.name === weapon.rarity.name);
             if (rarityIndex < customer.minRarity) {
-                log(`${customer.name} wants higher quality!`, 'warning');
+                // No log message - quality requirement visible in UI
                 return;
             }
 
@@ -2312,7 +2925,7 @@
             // Update rival market share
             updateRivalSales();
 
-            log(`Sold ${weapon.name} to ${customer.name} for ${salePrice} gold! (+${repGain} rep)`, 'success');
+            // No log message - transaction visible in UI stats
             
             // Update quest progress
             updateQuestProgress('sell');
@@ -2384,7 +2997,7 @@
             
             gameState.rivals = gameState.rivals.filter(rival => {
                 if (rival.sales < gameState.itemsSold * 0.1 && gameState.reputation > rival.reputation * 2) {
-                    log(`${rival.name} has closed due to lack of business!`, 'info');
+                    // No log message - only notice board
                     addNotice('rival', 'BUSINESS CLOSURE', `${rival.name} unable to compete - shutting down permanently`);
                     gameState.rivalsDefeated++; // Track defeated rivals
                     return false;
@@ -2421,7 +3034,7 @@
             gameState.eventEndTime = Date.now() + 60000; // 1 minute
             
             addNotice(event.type, event.title, message);
-            log(`World Event: ${event.title}`, 'info'); // Log to activity log too
+            // Removed activity log - events only appear in notice board
         }
 
         function triggerChoiceEvent() {
@@ -2453,7 +3066,7 @@
                     gameState.materials[mat] = Math.max(0, (gameState.materials[mat] || 0) - parseInt(amount));
                 }
                 
-                log(`Event: ${event.title} - You chose: ${selected.text}`, 'info');
+                // No log message - choice results visible in stats
                 updateUI();
             }
         }
@@ -2503,20 +3116,20 @@
 
         function takeLoan(amount) {
             if (gameState.debt > 0) {
-                log('You already have an outstanding loan!', 'warning');
+                // No log message - debt visible in UI
                 return;
             }
 
             gameState.debt = Math.floor(amount * (1 + GAME_CONFIG.loanInterestRate));
             gameState.gold += amount;
             
-            log(`Took loan of ${amount} gold. Must repay ${gameState.debt} gold.`, 'info');
+            // No log message - transaction visible in UI
             updateUI();
         }
 
         function repayLoan(amount) {
             if (gameState.gold < amount) {
-                log('Not enough gold!', 'error');
+                // No log message - gold amount visible
                 return;
             }
 
@@ -2524,7 +3137,7 @@
             gameState.gold -= payment;
             gameState.debt -= payment;
             
-            log(`Repaid ${payment} gold. Remaining debt: ${gameState.debt}`, 'success');
+            // No log message - debt visible in UI
             updateUI();
         }
 
@@ -2533,7 +3146,7 @@
             const payment = Math.floor(weapon.baseValue * GAME_CONFIG.contractPayMultiplier);
             
             gameState.gold += payment;
-            log(`Completed contract: ${weapon.name} for ${payment} gold`, 'success');
+            // No log message - gold change visible
             updateUI();
         }
 
@@ -2550,7 +3163,7 @@
             }
 
             if (gameState.gold < cost) {
-                log(`Not enough gold! Need ${cost}, have ${gameState.gold}`, 'error');
+                // No log message - gold shortage visible in UI
                 return;
             }
 
@@ -2563,7 +3176,7 @@
                 checkAchievements(); // Check for material unlock achievements
             }
             
-            log(`Purchased ${amount}x ${material.name} for ${cost} gold`, 'success');
+            // No log message - purchase visible in materials display
             
             // Update quest progress
             updateQuestProgress('materialChange');
@@ -2581,19 +3194,19 @@
             if (!upgrade) return;
 
             if (gameState.upgrades[upgradeId]) {
-                log('Already purchased!', 'warning');
+                // No log message - already purchased status visible
                 return;
             }
 
             if (gameState.gold < upgrade.cost) {
-                log(`Not enough gold! Need ${upgrade.cost}`, 'error');
+                // No log message - gold requirement visible
                 return;
             }
 
             gameState.gold -= upgrade.cost;
             gameState.upgrades[upgradeId] = true;
             
-            log(`Purchased ${upgrade.name}!`, 'success');
+            // No log message - upgrade visible in UI
             
             // Update quest progress
             updateQuestProgress('upgrade');
@@ -2618,7 +3231,7 @@
 
         function prayAtTemple() {
             if (gameState.gold < 50) {
-                log('Temple prayers require 50 gold donation', 'warning');
+                // No log message - gold requirement visible
                 return;
             }
 
@@ -2627,17 +3240,15 @@
             if (gameState.hiddenLuck < 0) {
                 const boost = Math.min(15, Math.abs(gameState.hiddenLuck));
                 gameState.hiddenLuck += boost;
-                log('You pray at the temple for better fortune...', 'info');
-            } else {
-                log('You pray at the temple for better fortune...', 'info');
             }
+            // No log message - spiritual action taken silently
             
             updateUI();
         }
 
         function makeOffering() {
             if (gameState.gold < 30) {
-                log('Offerings require 30 gold', 'warning');
+                // No log message - gold requirement visible
                 return;
             }
 
@@ -2646,10 +3257,8 @@
             if (gameState.hiddenLuck < 0) {
                 const boost = Math.min(10, Math.abs(gameState.hiddenLuck));
                 gameState.hiddenLuck += boost;
-                log('You make an offering to the forge spirits...', 'info');
-            } else {
-                log('You make an offering to the forge spirits...', 'info');
             }
+            // No log message - spiritual action taken silently
             
             updateUI();
         }
@@ -2657,6 +3266,52 @@
         // ============================================
         // UI UPDATES
         // ============================================
+
+        function updateForgingUI() {
+            const panel = document.getElementById('forgingPanel');
+            
+            // If showing results, don't touch anything - let completeForging handle it
+            if (gameState.showingResults) {
+                return;
+            }
+            
+            const progressBar = document.getElementById('forgingProgressBar');
+            const progressText = document.getElementById('forgingProgressText');
+            const eventMessage = document.getElementById('forgingEventMessage');
+            const weaponName = document.getElementById('forgingWeaponName');
+
+            if (gameState.isForging) {
+                panel.style.display = 'block';
+                panel.classList.add('forging-active');
+                
+                const percentage = Math.floor(gameState.forgingProgress * 100);
+                progressBar.style.width = `${percentage}%`;
+                progressText.textContent = `${percentage}%`;
+
+                // Update weapon name
+                const weapon = weaponTypes[gameState.forgingWeapon];
+                const material = materials[gameState.forgingMaterial];
+                weaponName.textContent = `${material.name} ${weapon.name}`;
+
+                // Display latest event or default message
+                const latestEvent = gameState.forgingEvents[gameState.forgingEvents.length - 1];
+                if (latestEvent) {
+                    eventMessage.innerHTML = `<strong style="color: ${latestEvent.qualityBonus ? '#4CAF50' : (latestEvent.qualityPenalty ? '#f44336' : '#ffd700')}">${latestEvent.name}</strong><br>${latestEvent.desc}`;
+                } else {
+                    const messages = [
+                        'The metal glows red-hot in the forge.<br>Your hammer rises and falls with purpose.',
+                        'Sparks fly with each precise strike.<br>You feel the rhythm of creation.',
+                        'The heat is intense, but your focus is unwavering.<br>This weapon will be worthy.',
+                        'You channel all your skill into each blow.<br>The metal begins to take shape.'
+                    ];
+                    const msgIndex = Math.floor(gameState.forgingProgress * messages.length);
+                    eventMessage.innerHTML = messages[Math.min(msgIndex, messages.length - 1)];
+                }
+            } else {
+                panel.style.display = 'none';
+                panel.classList.remove('forging-active');
+            }
+        }
 
         function updateUI() {
             // Update stats
@@ -2669,6 +3324,33 @@
 
             // Update rank display
             document.getElementById('rankDisplay').textContent = getCurrentRank();
+
+            // Regenerate focus passively
+            regenerateFocus();
+
+            // Update Focus Bar
+            const focusPercentage = (gameState.focusPoints / gameState.maxFocus) * 100;
+            document.getElementById('focusBar').style.width = `${focusPercentage}%`;
+            document.getElementById('focusText').textContent = `${Math.floor(gameState.focusPoints)} / ${gameState.maxFocus}`;
+
+            // Update XP Progress Bar
+            const xpForNextLevel = getXPForLevel(gameState.level);
+            const xpProgress = gameState.experience;
+            const xpPercentage = Math.floor((xpProgress / xpForNextLevel) * 100);
+            
+            document.getElementById('xpProgressText').textContent = `${xpProgress.toLocaleString()} / ${xpForNextLevel.toLocaleString()} XP`;
+            document.getElementById('xpProgressBar').style.width = `${xpPercentage}%`;
+            document.getElementById('xpProgressPercent').textContent = `${xpPercentage}%`;
+            document.getElementById('xpNextLevel').textContent = `Next Level: ${gameState.level + 1}`;
+
+            // Update Reputation Progress Bar
+            const rankInfo = getNextRankInfo();
+            const repPercentage = Math.floor((rankInfo.progress / rankInfo.required) * 100);
+            
+            document.getElementById('repProgressText').textContent = `${rankInfo.progress.toLocaleString()} / ${rankInfo.required.toLocaleString()} Rep`;
+            document.getElementById('repProgressBar').style.width = `${repPercentage}%`;
+            document.getElementById('repProgressPercent').textContent = `${repPercentage}%`;
+            document.getElementById('repNextRank').textContent = `Next Rank: ${rankInfo.nextRank}`;
 
             // Update game time display (single location now)
             if (gameState.gameTime) {
@@ -2859,15 +3541,24 @@
             const upgradesDiv = document.getElementById('upgradesList');
             upgradesDiv.innerHTML = upgrades.map(upgrade => {
                 const purchased = gameState.upgrades[upgrade.id];
+                const canAfford = gameState.gold >= upgrade.cost;
+                
                 return `
-                    <div class="item ${purchased ? 'equipped' : ''}">
+                    <div class="item ${purchased ? 'equipped' : ''}" style="${!purchased && !canAfford ? 'opacity: 0.7; border-color: #666;' : ''}">
                         <h3>${upgrade.name} ${purchased ? '✓' : ''}</h3>
                         <div class="item-details">${upgrade.description}</div>
                         <div class="item-details" style="color: #4CAF50;">${upgrade.effect}</div>
+                        ${!purchased && !canAfford ? 
+                            `<div class="item-details" style="color: #ff8c42; margin-top: 5px;">
+                                <strong>Requires: ${upgrade.cost}g</strong> (Need ${upgrade.cost - gameState.gold} more)
+                            </div>` : ''
+                        }
                         <div style="margin-top: 10px;">
                             ${purchased ? 
-                                '<span style="color: #4CAF50;">Purchased</span>' :
-                                `<button onclick="purchaseUpgrade('${upgrade.id}')" ${gameState.gold < upgrade.cost ? 'disabled' : ''}>Buy (${upgrade.cost}g)</button>`
+                                '<span style="color: #4CAF50;">✓ Purchased</span>' :
+                                `<button onclick="purchaseUpgrade('${upgrade.id}')" ${!canAfford ? 'disabled' : ''}>
+                                    Buy (${upgrade.cost}g)
+                                </button>`
                             }
                         </div>
                     </div>
@@ -2974,10 +3665,8 @@
             // Quest Panel
             updateQuestUI();
             
-            // Check if quest is already complete (for loaded games)
-            if (gameState.activeQuest) {
-                checkQuestCompletion();
-            }
+            // Update tab visibility based on unlocks
+            updateTabVisibility();
 
             // Auto-save (if enabled)
             if (gameState.autoSaveEnabled) {
@@ -3094,7 +3783,7 @@
 
         function craftGear(slot) {
             if (gameState.gold < 100) {
-                log('Crafting gear costs 100 gold!', 'error');
+                // No log message - gold requirement visible
                 return;
             }
 
@@ -3151,9 +3840,6 @@
             if (gameState.itemsSold > 0 && gameState.itemsSold % 10 === 0) {
                 checkRivalElimination();
             }
-            
-            // Check quest completion (in case progress was made but not checked)
-            checkQuestCompletion();
         }
 
         // ============================================
@@ -3179,8 +3865,7 @@
             generateRivals();
             
             clearLog(); // Clear old log entries
-            log(`Welcome, ${charName}! ${forgeName} is now open for business!`, 'success');
-            log('Start by buying materials and crafting weapons to sell to customers.', 'info');
+            // No welcome messages - forge opens silently
             
             addNotice('gossip', 'NEW BUSINESS', `${forgeName} opens its doors in town`);
             

@@ -1,552 +1,710 @@
-# Forge Master - Development TODO List
+# Forge Master - Development Roadmap (Overgeared Vision)
 
-## 📋 Overview
-This document tracks all planned features and improvements for Forge Master based on mobile tycoon game best practices.
-
----
-
-## ✅ COMPLETED FEATURES
-
-### **Achievement System** ✓
-- [x] 40+ achievements across 8 categories
-- [x] Achievement progress bar (X/Y unlocked with %)
-- [x] Chapter system (5 chapters with goals)
-- [x] Reward system (gold + XP)
-- [x] Visual unlock states (locked/unlocked)
-- [x] Integration with all game systems
-- [x] Achievements tab UI
-
-**Completed:** December 2024
-
-### **Quest/Mission System** ✓
-- [x] Quest data structure (early/mid/late game pools)
-- [x] Quest tracking UI (sidebar panel with progress bar)
-- [x] Active quest display showing current objective
-- [x] Quest types: Craft, Sell, Gold, Rarity, Materials, Upgrades, Rivals, Weapon-specific
-- [x] Quest rewards (gold + XP)
-- [x] Quest completion celebrations
-- [x] Auto-generate next quest on completion
-- [x] Quest completion counter
-
-**Completed:** December 2024
+## 🎯 Core Vision
+Transform Forge Master from a **tycoon game** into a **crafting mastery simulator** inspired by the manhwa *Overgeared*. The focus shifts from fast progression to meaningful crafting experiences where each weapon tells a story of the smith's growing mastery.
 
 ---
 
-## 🎯 PHASE 1 - RETENTION (Week 1-2)
-**Goal:** Give players immediate goals and show progression clearly
+## ✅ COMPLETED FEATURES (Phase 1 - Foundation)
 
-### 1.1 Quest/Mission System ✅
-**Priority:** CRITICAL - **COMPLETED**
-**Description:** Add a quest system that gives players immediate objectives
-**Features:**
-- [x] Create quest data structure
-- [x] Quest tracking UI (sidebar or dedicated panel)
-- [x] Active quest display showing current objective
-- [x] Quest types:
-  - [x] Craft X weapons
-  - [x] Sell Y items
-  - [x] Reach Z gold
-  - [x] Achieve specific rarity
-  - [x] Defeat a rival
-  - [x] Craft specific weapon types
-  - [x] Purchase upgrades
-  - [x] Accumulate materials
-  - [x] Gain reputation
-- [x] Quest rewards (gold, XP, materials)
-- [x] Quest completion celebrations
-- [x] Auto-generate next quest on completion
-- [x] Quest completion counter (shows total completed)
+### **Phase 1 - Retention & Progression Systems** ✓
+**Completed:** December 16, 2024
 
-**Implementation Details:**
-- 3 quest pools: Early (Level 1-5), Mid (Level 6-15), Late (Level 16+)
-- Dynamic quest generation with random values
-- Progress tracking integrated into all game systems
-- Visual progress bar with percentage
-- Automatic quest creation after 2-second delay
-- Quest panel appears in status area with blue border
+1. [x] Achievement System (40+ achievements, 8 categories)
+2. [x] Quest/Mission System (9 quest types, dynamic scaling)
+3. [x] Progress Bars (XP, Reputation, Upgrade previews)
+4. [x] Phased Feature Unlocking (7 unlock tiers)
+5. [x] Options Menu (auto-save toggle)
+6. [x] All quest types properly track progress
+7. [x] Calendar system with fantasy seasons
 
-**Completed:** December 15, 2024
+**Status:** Foundation complete and stable. Ready for core redesign.
 
 ---
 
-### 1.2 Progress Bars (XP, Reputation, Upgrades) ❌
-**Priority:** HIGH
-**Description:** Show visual progress toward next milestones
+## 🔥 CRITICAL PATH - OVERGEARED TRANSFORMATION
 
-**Features:**
-- [ ] XP progress bar to next level
-  - [ ] Show "X / Y XP" with percentage
-  - [ ] Visual bar that fills up
-  - [ ] Placed near level display
-  
-- [ ] Reputation progress bar to next rank
-  - [ ] Show "X / Y Rep to [Next Rank]"
-  - [ ] Visual progress indication
-  - [ ] Celebrate rank changes
-  
-- [ ] Upgrade unlock previews
-  - [ ] Gray out locked upgrades
-  - [ ] Show "Unlocks at X gold" or "Requires level Y"
-  - [ ] Preview upgrade benefits before purchasing
+This is the new priority order based on the Overgeared vision. Everything else is secondary.
+
+---
+
+## 📍 PHASE 2 - THE FORGING EXPERIENCE (CORE REDESIGN)
+**Priority:** CRITICAL - Start Immediately
+**Goal:** Transform crafting from transaction to experience
+
+### 2.1 Forging Animation & Timer System ⚡ NEXT
+**Description:** Every craft becomes a 3-5 second immersive experience
+
+**Core Mechanics:**
+- [ ] Remove instant crafting
+- [ ] Add forging animation system (3-5 seconds per craft)
+- [ ] Visual progress bar during forging
+- [ ] Hammer strike animation/effects
+- [ ] Material glow/spark effects
+- [ ] Success/failure visual feedback
+- [ ] Quality reveal ceremony
+
+**Technical Implementation:**
+- [ ] Create `startForging(weaponType, material)` function
+- [ ] Forging state machine (preparing → heating → striking → cooling → reveal)
+- [ ] Animation CSS keyframes
+- [ ] Progress tracking during forge
+- [ ] Interrupt/cancel handling
+- [ ] Queue system (can't start new forge during active forge)
 
 **UI Changes:**
 ```
-Level 5 ████████░░░░ 850/1,200 XP to Level 6
-
-Reputation ██████░░░░ 1,200/2,000 to Renowned Blacksmith
-
-[Locked Upgrade]
-Master's Hammer - Requires 500 gold
-Effect: +15% weapon value
-```
-
----
-
-### 1.3 Phased Feature Unlocking ❌
-**Priority:** MEDIUM
-**Description:** Don't overwhelm new players - unlock features gradually
-
-**Unlock Schedule:**
-- [ ] **Start (Level 1)**: Only Craft, Shop, Buy Materials tabs visible
-- [ ] **Level 2**: Unlock Stats tab + tutorial message
-- [ ] **Level 3**: Unlock Buy Materials tab (Steel+)
-- [ ] **Level 5**: Unlock Gear tab + Upgrades tab
-- [ ] **Level 7**: Unlock Services tab
-- [ ] **Level 10**: Unlock Notice Board tab
-- [ ] **Level 12**: Unlock Market Intelligence tab
-- [ ] **First rival appears**: Tutorial message about competition
-
-**Implementation:**
-- [ ] Tab visibility based on level
-- [ ] Unlock notification messages
-- [ ] Tutorial tooltips for new features
-- [ ] Save unlock state
-
----
-
-### 1.4 Unlock Previews ❌
-**Priority:** MEDIUM
-**Description:** Show what's coming next to motivate players
-
-**Features:**
-- [ ] Show locked upgrades with requirements
-- [ ] Display next material unlock and cost
-- [ ] Preview next rank requirements
-- [ ] Show locked achievements (already done ✓)
-- [ ] "Coming at Level X" indicators
-
----
-
-## 🔧 PHASE 2 - DEPTH (Week 3-4)
-**Goal:** Make unused stats functional and add gameplay depth
-
-### 2.1 Implement Unused Stats ❌
-**Priority:** HIGH
-**Description:** Make Efficiency, Speed, and Business stats actually work
-
-#### Efficiency Stat
-- [ ] Each point = 1% chance to not consume materials
-- [ ] Visual feedback when materials are saved
-- [ ] Update crafting function to check efficiency
-- [ ] Show efficiency % in stats tab
-
-**Example:** 5 Efficiency = 5% chance to craft for free
-
-#### Speed Stat
-- [ ] Each point = 2% faster crafting time
-- [ ] Show actual time reduction
-- [ ] Display crafting timer (optional)
-- [ ] Update time calculation function
-
-**Example:** 10 Speed = 20% faster crafting
-
-#### Business Stat
-- [ ] Each point = 2% higher customer budgets
-- [ ] Show budget increase in customer display
-- [ ] Update customer generation function
-- [ ] Display business bonus in stats
-
-**Example:** 5 Business = +10% customer budgets (100g → 110g)
-
----
-
-### 2.2 Implement Gear Stat Bonuses ❌
-**Priority:** MEDIUM
-**Description:** Make non-luck gear perks actually work
-
-**Gear Perks to Implement:**
-- [ ] Gold Find % → Bonus gold on sales
-- [ ] XP Bonus % → Faster leveling
-- [ ] Efficiency % → Stack with efficiency stat
-- [ ] Speed % → Stack with speed stat
-- [ ] Business % → Stack with business stat
-- [ ] Smithing → Stack with smithing stat (already partially works)
-
-**Implementation:**
-- [ ] Update getEffectiveStats() or create new helper
-- [ ] Apply bonuses in relevant calculations
-- [ ] Show gear bonuses in stats display
-- [ ] Visual indicator when bonuses apply
-
----
-
-### 2.3 Add Crafting Timer Visualization ⚠️
-**Priority:** LOW
-**Description:** Show crafting progress to make time meaningful
-
-**Features:**
-- [ ] Progress bar during crafting
-- [ ] Time remaining display (e.g., "3.2s remaining")
-- [ ] Optional: Animation during craft
-- [ ] Speed stat bonus visible in timer
-
-**UI:**
-```
-Crafting... ████████░░ 2.4s remaining
-(Speed bonus: -20%)
-```
-
----
-
-### 2.4 Batch Crafting Option ❌
-**Priority:** MEDIUM
-**Description:** Allow crafting multiple items at once
-
-**Features:**
-- [ ] "Craft X" button with quantity selector
-- [ ] Discount for bulk crafting (5-10% material savings)
-- [ ] Shows total time and total cost
-- [ ] Option for 1/5/10/max quantities
-- [ ] Batch completes all at once (or one-by-one?)
-
-**UI:**
-```
+[FORGING IN PROGRESS]
 Iron Sword
-[Craft 1] [Craft 5] [Craft 10] [Craft Max]
+████████░░░░ 60%
+Time Remaining: 2.1s
 
-Craft 5: Requires 15 iron, takes 12s total
+[Hammer strikes rhythmically...]
+Your focus is unwavering.
 ```
+
+**Estimated Time:** 4-6 hours
 
 ---
 
-## 🎨 PHASE 3 - VARIETY (Week 5-6)
-**Goal:** Add alternative gameplay loops and activities
+### 2.2 Focus & Concentration System ⚡ HIGH PRIORITY
+**Description:** Grid's mental state affects crafting - the core of Overgeared smithing
 
-### 3.1 Special Order System ❌
-**Priority:** HIGH
-**Description:** Time-limited high-stakes crafting requests
+**Focus Points System:**
+- [ ] Add Focus Points (FP) resource to gameState
+- [ ] FP bar in UI (max 100, current amount)
+- [ ] FP regeneration (1 per minute passively)
+- [ ] FP consumption during crafting (10-30 FP per craft based on material)
+- [ ] Low FP = worse results, High FP = better results
+- [ ] "Exhausted" state when FP reaches 0
 
-**Features:**
-- [ ] Special orders appear randomly (every 15-30 mins)
-- [ ] Requirements: Specific weapon type + minimum rarity
-- [ ] Time limit (5-15 minutes)
-- [ ] Higher rewards than normal sales
-- [ ] Reputation penalty for failure/timeout
-- [ ] Visual indicator for active special order
-- [ ] Sound/notification when order appears
+**Focus Affects:**
+- [ ] Base quality multiplier (50 FP = 1.0x, 100 FP = 1.5x, 0 FP = 0.5x)
+- [ ] Critical success chance (high focus = rare quality spikes)
+- [ ] Failure rate (tired smith makes mistakes)
+- [ ] Insight discovery chance
 
-**Example:**
+**UI Display:**
 ```
-🎯 SPECIAL ORDER
-Lord Blackwood requests an Epic Greatsword
-Time Remaining: 8:45
-Reward: 500g + 100 rep
-Failure: -50 rep
+🧠 Focus: ████████░░ (80/100)
+State: Concentrated
+
+[Craft Iron Sword] (Costs 15 FP)
 ```
+
+**Rest Mechanics:**
+- [ ] "Take Break" button (recover 50 FP, costs 30 seconds game time)
+- [ ] "Meditate" button (full FP recovery, costs 5 minutes game time)
+- [ ] Auto-rest when FP below 20? (optional setting)
+
+**Estimated Time:** 3-4 hours
 
 ---
 
-### 3.2 Material Expedition Mechanic ❌
-**Priority:** MEDIUM
-**Description:** Send apprentice on trips to gather materials
+### 2.3 Random Events During Forging 🎲
+**Description:** Grid's breakthroughs, setbacks, and moments of inspiration
 
-**Features:**
-- [ ] Click to send apprentice on expedition
-- [ ] Choose expedition type (Iron/Steel/Silver/etc.)
-- [ ] Costs gold upfront (investment)
-- [ ] Takes real time (5-15 minutes)
-- [ ] Returns with materials (or fails)
-- [ ] Risk/reward scaling with material tier
-- [ ] Can only have one expedition active
-- [ ] Progress indicator and timer
+**Event Types:**
 
-**Example:**
-```
-EXPEDITIONS
-[Send Apprentice]
+**Positive Events (15% chance total):**
+- [ ] "Perfect Strike!" - Your hammer finds ideal rhythm (+10-15 quality)
+- [ ] "Material Resonance" - The metal sings under your touch (+quality, +insight)
+- [ ] "Moment of Clarity" - Flash of inspiration! (+20 quality, rare)
+- [ ] "Steady Hands" - Your control is impeccable (guarantee no failure)
+- [ ] "Flow State" - Time seems to slow... (unlock special option)
 
-Silver Mine Expedition
-Cost: 100g | Duration: 10 mins
-Potential Reward: 5-15 silver
-Risk: 30% chance of failure
-```
+**Negative Events (10% chance total):**
+- [ ] "Distraction" - Your focus wavers (-5 quality)
+- [ ] "Impurity Found" - The material resists (-10 quality)
+- [ ] "Timing Off" - Rhythm breaks (-quality, +failure chance)
+- [ ] "Exhaustion Creeps In" - Your arms tire (lose extra FP)
 
----
-
-### 3.3 Achievement/Badge Collection System ✓
-**Priority:** COMPLETED
-**Status:** Already implemented with 40+ achievements
-
----
-
-### 3.4 Daily Login Bonuses ❌
-**Priority:** MEDIUM
-**Description:** Reward players for returning each day
-
-**Features:**
-- [ ] Track last login date
-- [ ] Daily reward on first login each day
-- [ ] Escalating rewards (day 1, 2, 3... up to day 7)
-- [ ] Reset after 7 days or continue
-- [ ] Rewards: gold, materials, XP, gear pieces
-- [ ] Visual calendar showing streak
-- [ ] Notification on login
-
-**Example:**
-```
-DAILY LOGIN BONUS
-Day 3 Reward: 100 gold + 5 steel
-Login Streak: 3 days
-Next Reward: 150 gold + Iron Sword
-```
-
----
-
-### 3.5 Smithing Competitions ❌
-**Priority:** LOW
-**Description:** Weekly challenges against AI
-
-**Features:**
-- [ ] Weekly competition starts automatically
-- [ ] Challenge: Craft best weapon in category
-- [ ] Compete against procedural AI entries
-- [ ] Judged on quality score + rarity
-- [ ] Rewards: Prestige points, gold, reputation
-- [ ] Competition history/trophy display
-- [ ] Different categories each week
-
-**Example:**
-```
-WEEKLY COMPETITION: Best Greatsword
-Entries close in: 2 days, 14 hours
-
-Your Best: Epic Flame Greatsword (87 quality)
-Current Leader: Legendary Storm Blade (94 quality)
-
-1st Place: 1000g + 500 rep + Gold Trophy
-```
-
----
-
-## 🎭 PHASE 4 - POLISH (Week 7+)
-**Goal:** Improve feel, add juice, refine experience
-
-### 4.1 Tutorial System ❌
-**Priority:** MEDIUM
-**Description:** Guide new players through first steps
-
-**Features:**
-- [ ] First-time tutorial sequence
-- [ ] Step-by-step instructions
-- [ ] Highlight UI elements
-- [ ] Force first actions (craft first weapon, sell it)
-- [ ] Optional: Tooltip system (hover for help)
-- [ ] Can be skipped by experienced players
-- [ ] Tutorial progress saved
-
-**Tutorial Flow:**
-1. Welcome message
-2. "Buy 5 iron" (forced)
-3. "Craft an iron sword" (forced)
-4. "Wait for customer"
-5. "Sell your weapon"
-6. "Allocate stat points"
-7. Tutorial complete!
-
----
-
-### 4.2 Sound Effects ❌
-**Priority:** LOW
-**Description:** Audio feedback for actions
-
-**Sounds Needed:**
-- [ ] Hammer strike (crafting)
-- [ ] Success chime (craft success)
-- [ ] Failure clang (craft failure)
-- [ ] Coin drop (sale)
-- [ ] Level up fanfare
-- [ ] Achievement unlock
-- [ ] Customer enters shop
-- [ ] Button clicks
+**Neutral/Choice Events (5% chance):**
+- [ ] "Experiment?" - Try something new? (Risk/Reward choice)
+- [ ] "Perfect Moment" - Strike now for bonus! (Timing challenge)
+- [ ] "Material Whispers" - Learn something about this material
 
 **Implementation:**
-- [ ] Use Web Audio API
-- [ ] Volume control in settings
-- [ ] Mute option
-- [ ] Sound toggle saved to localStorage
+- [ ] Event pool system (weighted random selection)
+- [ ] Event messages display during forging animation
+- [ ] Events affect quality calculation
+- [ ] Some events affect hidden luck
+- [ ] Track event history for statistics
+
+**Display:**
+```
+[FORGING: 2.5s remaining]
+████████░░░░
+
+✨ Perfect Strike!
+Your hammer finds the ideal rhythm.
+The metal seems to respond to your will.
+
+Quality Bonus: +12
+```
+
+**Estimated Time:** 4-5 hours
 
 ---
 
-### 4.3 Offline Progress ❌
-**Priority:** MEDIUM
-**Description:** Earn while away from game
+### 2.4 Crafting Insights & Discovery System 💡
+**Description:** Permanent knowledge gained through experience - Grid's learning journey
 
-**Features:**
-- [ ] Track time offline
-- [ ] Calculate passive earnings
-- [ ] Maximum 8-12 hours of offline progress
-- [ ] Show "While you were away" summary
-- [ ] Reduced efficiency (50% of active play)
-- [ ] Requires certain upgrades unlocked?
+**Insight Categories:**
 
-**Implementation:**
-- [ ] Save last active timestamp
-- [ ] On load, check time difference
-- [ ] Simulate reduced crafting/selling
-- [ ] Award accumulated gold/XP/rep
-- [ ] Display summary modal
+**Material Insights:**
+- [ ] "Iron's True Nature" - +5% quality on all iron crafts
+- [ ] "Steel Requires Patience" - -5% fail rate on steel
+- [ ] "Silver's Temperament" - Understand silver properties
+- [ ] "Mithril Mysteries" - Unlock hidden mithril techniques
+- [ ] "Adamantine Mastery" - Peak material understanding
+
+**Technique Insights:**
+- [ ] "Rapid Forging Method" - Craft 20% faster (quality tradeoff)
+- [ ] "Perfect Temperature Control" - Better heat management
+- [ ] "Hammer Weight Distribution" - Improved striking
+- [ ] "Grain Alignment" - Reveal material structure
+- [ ] "Soul Binding" - Impart extra quality to weapons
+
+**Weapon Insights:**
+- [ ] "Sword Balance Principles" - +quality on swords
+- [ ] "Axe Head Density" - Better axes
+- [ ] "Dagger Precision" - Sharper daggers
+- [ ] (One for each weapon type)
+
+**Discovery Mechanics:**
+- [ ] Random chance during forging (1-5% based on conditions)
+- [ ] Higher chance with high focus
+- [ ] Higher chance on failures (learn from mistakes!)
+- [ ] Higher chance when experimenting
+- [ ] Certain level thresholds guarantee insights
+
+**Insight Journal:**
+- [ ] New tab: "Smithing Journal"
+- [ ] Lists all discovered insights
+- [ ] Shows locked insights as "???"
+- [ ] Tracks how many times you've crafted each item
+- [ ] Displays mastery level per material/weapon type
+
+**UI:**
+```
+💡 INSIGHT DISCOVERED!
+
+"Iron's True Nature"
+
+Through countless forgings, you've come to 
+understand iron's fundamental properties.
+It is honest metal - what you put in, 
+you get out.
+
+Effect: +5% base quality on all Iron weapons
+Discovered: After crafting 50 iron weapons
+```
+
+**Estimated Time:** 5-6 hours
+
+---
+
+### 2.5 Material Mastery & Attunement 🔬
+**Description:** Deep understanding of materials through study and repetition
+
+**Mastery System:**
+- [ ] Each material has mastery level (0-100)
+- [ ] Gain mastery XP every time you craft with material
+- [ ] Higher mastery = better understanding = better results
+- [ ] Mastery levels unlock benefits
+
+**Mastery Benefits:**
+```
+Iron Mastery: 45/100 (Journeyman)
+
+Benefits Unlocked:
+✓ Level 10: +5% quality
+✓ Level 25: -10% fail rate  
+✓ Level 50: Rare insight: "Iron's Malleability"
+  Level 75: ??? (Locked)
+  Level 100: ??? (Master Rank)
+```
+
+**Study System:**
+- [ ] "Study Material" button (costs gold, takes time)
+- [ ] Focused study session (mini-game or time-gate)
+- [ ] Grants mastery XP without crafting
+- [ ] Reveals hidden material properties
+
+**Material Properties (Hidden → Revealed):**
+```
+Iron (Mastery: 15)
+Known Properties:
+✓ Malleable when heated
+✓ Prone to rust
+? Reacts well to repeated strikes
+? ???
+? ???
+
+[Study Iron] (50g, 2 minutes)
+```
+
+**Attunement:**
+- [ ] "Attune to Material" action before crafting
+- [ ] Costs time/focus but improves understanding
+- [ ] Temporary bonus to next craft with that material
+- [ ] "I need to understand this metal before I begin..."
+
+**Estimated Time:** 4-5 hours
+
+---
+
+### 2.6 Active Crafting Moments (Timing Challenges) ⚡
+**Description:** Player skill matters - Grid's perfect timing and precision
+
+**Timing Challenges:**
+- [ ] Random prompts during forging: "Strike NOW!"
+- [ ] 0.5-1 second window to click/press key
+- [ ] Success: +10-20 quality bonus
+- [ ] Miss: -5 quality penalty
+- [ ] Multiple successes: Combo multiplier!
+
+**Perfect Rhythm System:**
+```
+[PERFECT!] +15 quality
+[PERFECT!] +15 quality (2x COMBO!)
+[PERFECT!] +15 quality (3x COMBO! - "You're in the zone!")
+
+Miss: Combo broken
+```
+
+**Critical Moments:**
+- [ ] "Final Strike" - Last chance for perfection
+- [ ] "Quenching Point" - Perfect cooling timing
+- [ ] "Tempering Window" - Precise temperature control
+
+**Skill Expression:**
+- [ ] Good players can achieve higher quality
+- [ ] Bad timing = worse results (but still crafts)
+- [ ] Optional: Can disable in settings for accessibility
+
+**Visual Feedback:**
+```
+[FORGING: Iron Sword]
+████████░░
+
+!! STRIKE NOW !!
+[Circle shrinks - click when small]
+
+PERFECT! ⚡
+The hammer connects flawlessly.
++18 Quality
+```
+
+**Estimated Time:** 3-4 hours
+
+---
+
+### 2.7 Quality Reveal Ceremony 🎊
+**Description:** The moment of truth - what have you created?
+
+**Reveal Sequence:**
+- [ ] Forging completes → brief pause
+- [ ] Weapon materializes with effect
+- [ ] Rarity revealed with fanfare
+- [ ] Quality score shown
+- [ ] Perks displayed one by one
+- [ ] Special message for high-quality items
+
+**Rarity-Based Reveals:**
+```
+Poor/Common: Simple appear, quiet
+Uncommon: Gentle glow, soft chime
+Rare: Blue shimmer, clear chime
+Epic: Purple aura, dramatic music
+Legendary: Golden explosion, fanfare!
+Mythic: Reality warps, legendary reveal!
+```
+
+**Special Messages:**
+```
+[Legendary Quality Achieved!]
+
+"Ancient Mithril Greatsword"
+★★★★★ LEGENDARY
+
+You've poured your very soul into this blade.
+It will be remembered for generations.
+
+Quality: 94/100
+Worth: 2,450 gold
+
+[Your reputation grows...]
++500 Reputation
+```
+
+**Photo Mode:**
+- [ ] "Admire Weapon" button after craft
+- [ ] Rotatable 3D view (or detailed sprite)
+- [ ] Weapon stats overlay
+- [ ] Share/screenshot feature
+
+**Estimated Time:** 3-4 hours
+
+---
+
+## 📍 PHASE 3 - MASTERY DEPTH
+**Goal:** Long-term progression and replayability through mastery
+
+### 3.1 Signature Techniques System
+**Description:** Unlock and choose crafting approaches (Grid's style evolution)
+
+**Technique Types:**
+- [ ] Rapid Forging: 50% faster, -20% quality (quantity over quality)
+- [ ] Careful Craftsmanship: 2x time, +30% quality (Grid's patient approach)
+- [ ] Intuitive Smithing: ??? result, can be amazing or terrible (gamble)
+- [ ] Meditative Forging: Requires full focus, exceptional quality
+- [ ] Aggressive Striking: Higher variance, chance for breakthroughs
+- [ ] Precise Calculation: Consistent results, less variance
+
+**Unlocking Techniques:**
+- [ ] Start with "Standard Forging"
+- [ ] Level 5: Unlock "Rapid Forging"
+- [ ] Level 10: Unlock "Careful Craftsmanship"
+- [ ] Level 15: Unlock "Intuitive Smithing"
+- [ ] Insights can unlock unique techniques
+- [ ] Special quests unlock legendary techniques
+
+**Selection:**
+```
+Choose Forging Technique:
+
+○ Standard Forging
+  Time: 3s | Quality: Normal
+
+● Careful Craftsmanship 
+  Time: 6s | Quality: +30%
+  "Take your time. Do it right."
+
+○ Rapid Forging
+  Time: 1.5s | Quality: -20%
+  "Speed is of the essence."
+
+[Begin Forging]
+```
+
+**Estimated Time:** 4-5 hours
+
+---
+
+### 3.2 Weapon Mastery Progression
+**Description:** Become a specialist or generalist
+
+**Weapon Mastery Levels:**
+- [ ] Track crafts per weapon type
+- [ ] Mastery unlocks bonuses
+- [ ] Title system (Novice → Master → Legendary)
+
+```
+SWORD MASTERY: Level 8 (Expert)
+Crafted: 234 swords
+Best Quality: 87/100 (Epic)
+
+Bonuses:
+✓ +10% sword quality
+✓ -15% sword fail rate
+✓ Insight: "Blade Balance"
+  Next: Level 10 - "Sword Soul Binding"
+```
+
+**Specialization Path:**
+- [ ] After 100 crafts of one type: "Specialize?"
+- [ ] Specializing gives huge bonuses to that type
+- [ ] Slight penalties to other types
+- [ ] Can respec (expensive)
+
+**Estimated Time:** 3-4 hours
+
+---
+
+### 3.3 Legendary Crafting Challenges
+**Description:** Special crafting sessions for ultimate items
+
+**Challenge Types:**
+- [ ] Timed crafting: "Craft Epic+ in 10 minutes"
+- [ ] Perfect run: "Craft 5 weapons without failure"
+- [ ] Quality threshold: "Achieve 90+ quality score"
+- [ ] Material restriction: "Craft Legendary using only Iron"
+
+**Rewards:**
+- [ ] Unique insights
+- [ ] Special techniques
+- [ ] Legendary materials
+- [ ] Titles and achievements
+
+**Weekly Competitions:**
+- [ ] "Master Smith Challenge"
+- [ ] Compete against AI rivals
+- [ ] Submit your best weapon
+- [ ] Rankings and rewards
+
+**Estimated Time:** 5-6 hours
+
+---
+
+## 📍 PHASE 4 - IMMERSION & POLISH
+**Goal:** Make it feel like Overgeared
+
+### 4.1 Sound Design & Music
+- [ ] Hammer striking sounds (multiple variations)
+- [ ] Metal ringing/singing
+- [ ] Fire crackling
+- [ ] Success fanfares (rarity-based)
+- [ ] Failure sounds (metal cracking)
+- [ ] Background forge ambiance
+- [ ] Focus/meditative music during crafting
+- [ ] Epic music for legendary reveals
+
+**Estimated Time:** 2-3 hours (using free assets)
+
+---
+
+### 4.2 Visual Effects & Particles
+- [ ] Sparks flying during strikes
+- [ ] Heat glow on metal
+- [ ] Steam during quenching
+- [ ] Rarity-based auras
+- [ ] Quality shimmer effects
+- [ ] Breakthrough flash effects
+- [ ] Focus visualization
+
+**Estimated Time:** 4-5 hours
+
+---
+
+### 4.3 Narrative Flavor Text
+- [ ] Poetic descriptions during forging
+- [ ] Grid-style internal monologue
+- [ ] Dynamic text based on state
+- [ ] Success/failure narration
+- [ ] Weapon lore on hover
 
 **Example:**
 ```
-WELCOME BACK!
-You were away for 4 hours
+"The metal is honest. It will not lie to you.
+Put in effort, receive results.
+This is the way of the smith."
 
-While you were gone:
-- Crafted 12 weapons
-- Earned 850 gold
-- Gained 300 reputation
-- Leveled up! (x1)
+Your hammer rises and falls.
+Each strike a conversation with the steel.
+Today, it answers kindly.
+```
+
+**Estimated Time:** 3-4 hours
+
+---
+
+### 4.4 Smithing Journal & Statistics
+- [ ] Personal crafting history
+- [ ] Best weapons hall of fame
+- [ ] Insights discovered
+- [ ] Materials mastered
+- [ ] Techniques learned
+- [ ] Total strikes counted
+- [ ] Perfect timings achieved
+- [ ] Legendary moments logged
+
+**Estimated Time:** 3-4 hours
+
+---
+
+## 📍 PHASE 5 - ADAPTED FEATURES (From Old Roadmap)
+
+These features need to be reconsidered in light of the crafting focus:
+
+### 5.1 Batch Crafting → **REMOVE or REDESIGN**
+**Issue:** Contradicts the "every craft matters" philosophy
+**Options:**
+- Remove entirely (each craft is special)
+- Redesign as "Training Mode" (practice, no items produced)
+- "Mass Production" technique (much lower quality, for basic orders)
+
+### 5.2 Offline Progress → **REDESIGN**
+**Issue:** Can't auto-craft complex system
+**Options:**
+- Apprentice crafts basic items while away
+- Gather insights/mastery passively
+- Study materials offline
+- NO offline crafting of important items
+
+### 5.3 Special Orders → **KEEP & ENHANCE**
+- Perfect fit for the vision!
+- "Craft a Legendary sword in 10 minutes for the Duke"
+- High stakes, high focus crafting
+- Story moments through orders
+
+### 5.4 Material Expeditions → **KEEP**
+- Fits the world-building
+- Rare material acquisition
+- Adds strategic layer
+
+### 5.5 Stat Implementation → **REDESIGN**
+**Efficiency**: Reduce Focus cost per craft
+**Speed**: Slightly faster forging (not too fast!)
+**Business**: Better prices (unchanged)
+**Smithing**: More focus during forge, higher quality ceiling
+
+---
+
+## 🎯 NEW PRIORITY ORDER
+
+### **Immediate (This Week):**
+1. Forging Animation & Timer (2.1) - FOUNDATION
+2. Focus System (2.2) - CORE MECHANIC
+3. Random Events (2.3) - ADDS VARIETY
+
+### **Short Term (Next 2 Weeks):**
+4. Insights & Discovery (2.4) - PROGRESSION
+5. Material Mastery (2.5) - DEPTH
+6. Active Moments (2.6) - SKILL EXPRESSION
+7. Quality Reveal (2.7) - SATISFACTION
+
+### **Medium Term (Month 2):**
+8. Signature Techniques (3.1)
+9. Weapon Mastery (3.2)
+10. Sound & Music (4.1)
+11. Visual Effects (4.2)
+
+### **Long Term (Month 3+):**
+12. Legendary Challenges (3.3)
+13. Narrative Flavor (4.3)
+14. Journal System (4.4)
+15. Adapt remaining features (Phase 5)
+
+---
+
+## 🔄 CONVERSION TO HYBRID (Option B) - IF NEEDED
+
+If full immersion becomes tedious, here's the pivot plan:
+
+### **Fast Track to Hybrid:**
+1. Keep all systems from Phase 2-3
+2. Add "Quick Craft" button
+   - Uses average of your past 10 crafts
+   - No animation, instant
+   - Costs no Focus
+   - Lower quality ceiling
+3. Add "Master Craft" button
+   - Full Overgeared experience
+   - Costs 50 Focus
+   - Best quality potential
+   - All the immersion
+4. Let players choose per craft
+
+**Implementation Time:** 2-3 hours (if systems already built)
+
+---
+
+## 📊 ESTIMATED TOTAL TIME
+
+**Phase 2 (Core Transformation):** 25-35 hours
+**Phase 3 (Mastery Depth):** 12-15 hours
+**Phase 4 (Polish):** 12-16 hours
+**Phase 5 (Adaptation):** 8-12 hours
+
+**TOTAL:** 57-78 hours of development
+
+---
+
+## 💭 DESIGN PHILOSOPHY SHIFT
+
+### **OLD Philosophy (Tycoon):**
+- Fast progression
+- Volume of crafts
+- Economic optimization
+- Strategic timing
+
+### **NEW Philosophy (Overgeared):**
+- Meaningful crafting
+- Quality over quantity  
+- Mastery through focus
+- Discovery through experience
+
+### **What Stays:**
+- Hidden luck system
+- Risk/reward (failure)
+- Progression systems
+- Rival competition
+- World events
+
+### **What Changes:**
+- Crafting is now the CORE experience
+- Each weapon has a story
+- Player skill matters (timing)
+- Knowledge is power (insights)
+
+---
+
+## 🎮 PLAYER EXPERIENCE TRANSFORMATION
+
+### **Before (Tycoon Mode):**
+```
+1. Click craft → Roll dice → Get weapon
+2. Repeat 100 times
+3. Focus on economy, timing, optimization
+```
+
+### **After (Overgeared Mode):**
+```
+1. Choose technique, prepare mentally
+2. Enter forging sequence (5 seconds)
+3. Respond to events, hit perfect timings
+4. Moment of truth - reveal the weapon
+5. Feel pride in your creation
+6. Learn and improve from experience
 ```
 
 ---
 
-### 4.4 Prestige/New Game+ System ❌
-**Priority:** LOW
-**Description:** Endgame loop for replayability
+## 🔮 FUTURE VISION (Post-Launch)
 
-**Features:**
-- [ ] Prestige option after reaching victory (100k rep)
-- [ ] Reset most progress but keep some bonuses
-- [ ] Prestige currency/points
-- [ ] Permanent bonuses (prestige upgrades)
-- [ ] Prestige level display
-- [ ] Special prestige-only achievements
-- [ ] Faster progression on subsequent runs
-
-**Prestige Bonuses Ideas:**
-- Starting gold multiplier
-- Starting materials bonus
-- XP gain boost
-- Rare unlock earlier materials
-- Start at higher level
-
-**Example:**
-```
-PRESTIGE AVAILABLE
-Reset your forge to gain permanent bonuses!
-
-You will keep:
-- Achievements
-- Prestige level (+1)
-- Prestige upgrades
-
-You will lose:
-- Gold, reputation, level
-- Weapons, gear, materials
-- Rivals, customers
-
-Prestige Bonus: +50% starting gold
-```
+If Option A succeeds, future additions:
+- [ ] Weapon enchanting (add magic properties)
+- [ ] Apprentice system (teach others your techniques)
+- [ ] Legendary weapon questlines
+- [ ] Multiplayer competitions
+- [ ] Custom weapon orders with requirements
+- [ ] Master smith tournaments
+- [ ] Weapon soul binding (permanent upgrades)
 
 ---
 
-## 🔮 FUTURE IDEAS (Not Prioritized)
+## ⚠️ CRITICAL NOTES
 
-### Additional Features to Consider:
-- [ ] **Seasonal Events**: Limited-time events with unique rewards
-- [ ] **Cosmetic System**: Customize forge appearance
-- [ ] **Recipe Discovery**: Find rare weapon blueprints
-- [ ] **Assistant/Helper NPCs**: Hire workers with unique bonuses
-- [ ] **Crafting Minigames**: Optional skill-based bonuses
-- [ ] **Weapon Enchanting**: Add magical properties post-craft
-- [ ] **Guild System**: Join/create guilds for group benefits
-- [ ] **Leaderboards**: Compare with other players (requires backend)
-- [ ] **Trading System**: Trade with other players or NPCs
-- [ ] **Story Mode**: Narrative quests and character development
-- [ ] **Random Encounters**: Traveling merchants, thieves, etc.
-- [ ] **Weather System**: Affects customer traffic or material costs
-- [ ] **Reputation Tiers**: Unlock special customers at high rep
-- [ ] **Crafting Specializations**: Become expert in certain weapon types
+1. **Playtesting is ESSENTIAL** - We need to verify the 3-5s timing isn't tedious
+2. **Balance is key** - Focus regeneration must feel right
+3. **Feedback loops** - Players must see improvement from mastery
+4. **Accessibility** - Timing challenges should be optional
+5. **Respect player time** - Even with immersion, avoid unnecessary waits
 
 ---
 
-## 📊 PRIORITY SUMMARY
+## 📝 CONVERSION PLAN (A → B)
 
-### **Must-Have (Before Public Release):**
-1. Quest/Mission System (Phase 1.1)
-2. Progress Bars for XP/Rep (Phase 1.2)
-3. Implement Unused Stats (Phase 2.1)
-4. Phased Feature Unlocking (Phase 1.3)
+If we need to switch to Hybrid (Option B):
 
-### **Should-Have (Early Updates):**
-1. Special Orders (Phase 3.1)
-2. Gear Stat Bonuses (Phase 2.2)
-3. Daily Login Bonuses (Phase 3.4)
-4. Tutorial System (Phase 4.1)
+**What to Keep:**
+- All the systems (Focus, Insights, Mastery, Events)
+- All the progression mechanics
+- All the visual polish
 
-### **Nice-to-Have (Polish):**
-1. Batch Crafting (Phase 2.4)
-2. Material Expeditions (Phase 3.2)
-3. Offline Progress (Phase 4.3)
-4. Sound Effects (Phase 4.2)
+**What to Add:**
+- "Quick Craft" mode for routine work
+- "Master Craft" mode for important pieces
+- Player chooses which mode per craft
+- Focus becomes the gate (Master Craft costs Focus)
 
-### **Long-Term (Post-Launch):**
-1. Prestige System (Phase 4.4)
-2. Smithing Competitions (Phase 3.5)
-3. Future ideas as appropriate
+**Changes Required:** Minimal (2-3 hours)
+**Philosophy:** Grid also has routine days and legendary days
 
 ---
 
-## 📝 NOTES
-
-### Design Principles to Maintain:
-- **Discovery-based learning** - Keep tooltips optional
-- **Hidden mechanics** - Preserve luck mystery
-- **Replayability** - Randomization is key
-- **Merit-based** - No pay-to-win
-- **Recovery possible** - No permanent failure
-- **Single-player focus** - Don't require online features
-
-### Technical Considerations:
-- Keep localStorage saves compatible across updates
-- Add version migration for new features
-- Maintain performance with new systems
-- Test on mobile browsers (touch support)
-- Consider file size (keep under 500KB if possible)
-
-### Balancing Notes:
-- Don't make progression too fast with new features
-- Ensure achievements remain challenging but achievable
-- Keep quest rewards balanced with existing economy
-- Test offline progress rates carefully
-
----
-
-## 🎯 CURRENT STATUS
-
-**Latest Update:** December 15, 2024
-**Version:** 1.2 (with Achievements + Quests)
-**Next Priority:** Phase 1.2 - Progress Bars (XP, Reputation, Upgrades)
-
-**Active Development:**
-- Working on: Quest/Mission system (COMPLETED ✓)
-- Next up: Progress bars for XP and Reputation
-- Backlog: Stat implementation, phased unlocking
-
-**Recently Completed:**
-1. Achievement System (40+ achievements, 8 categories)
-2. Quest/Mission System (dynamic quests with 9 quest types)
-
----
-
-*Last Updated: December 15, 2024*
+*Last Updated: December 16, 2024*
+*Vision: Capture the soul of Overgeared's crafting mastery*
+*Status: Phase 1 Complete, Phase 2 Ready to Begin*
