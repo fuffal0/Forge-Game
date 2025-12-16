@@ -287,12 +287,15 @@
         .log-panel {
             grid-column: 1 / -1;
             max-height: 250px;
+            overflow: hidden;
         }
 
         .log-content {
             max-height: 200px;
             overflow-y: auto;
+            overflow-x: hidden;
             padding-right: 10px;
+            width: 100%;
         }
 
         .log-entry {
@@ -303,9 +306,13 @@
             border-left: 3px solid #8b4513;
             font-size: 0.95em;
             animation: slideIn 0.3s;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            white-space: normal;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            hyphens: auto;
+            white-space: pre-wrap;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         @keyframes slideIn {
@@ -525,6 +532,7 @@
 <body>
     <!-- Save/Load Menu -->
     <button class="menu-button" onclick="showSaveLoadMenu()">💾 Save/Load</button>
+    <div id="lastSavedIndicator" style="position: fixed; top: 70px; right: 20px; z-index: 998; color: #c4a57b; font-size: 0.85em; font-family: 'Crimson Text', serif; text-align: right; opacity: 0.8;"></div>
 
     <div id="saveLoadMenu" class="modal">
         <div class="modal-content" style="max-width: 700px;">
@@ -557,13 +565,19 @@
         <header>
             <h1>⚒️ FORGE MASTER ⚒️</h1>
             <div class="forge-name" id="forgeNameDisplay"></div>
-            <p class="subtitle">Master Smith of the Realm</p>
+            <p class="subtitle" id="rankDisplay">Novice Blacksmith</p>
         </header>
 
         <div class="main-layout">
             <!-- Left Panel: Status -->
             <div class="panel">
                 <h2>📊 Status</h2>
+                
+                <div style="background: rgba(74, 37, 17, 0.3); padding: 12px; border-radius: 8px; border: 1px solid #4a2511; margin-bottom: 15px; text-align: center;">
+                    <div style="color: #ff8c42; font-size: 0.9em; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">Date</div>
+                    <div style="color: #ffd700; font-size: 1.1em; font-family: 'Cinzel', serif;" id="statusDateDisplay">--</div>
+                </div>
+                
                 <div class="stat-grid">
                     <div class="stat">
                         <div class="stat-label">Gold</div>
@@ -606,6 +620,7 @@
                     <button class="tab-btn" onclick="switchTab('stats')">Stats</button>
                     <button class="tab-btn" onclick="switchTab('gear')">Gear</button>
                     <button class="tab-btn" onclick="switchTab('upgrade')">Upgrades</button>
+                    <button class="tab-btn" onclick="switchTab('achievements')">Achievements</button>
                     <button class="tab-btn" onclick="switchTab('services')">Services</button>
                     <button class="tab-btn" onclick="switchTab('notices')">Notice Board</button>
                     <button class="tab-btn" onclick="switchTab('market')">Market</button>
@@ -657,6 +672,29 @@
                     <p style="margin-bottom: 15px; color: #c4a57b; font-style: italic;">Monitor your competition and market position.</p>
                     <div id="marketInfo" style="max-height: 500px; overflow-y: auto;"></div>
                 </div>
+
+                <div id="achievements-tab" class="tab-content">
+                    <h3 style="color: #ffd700; margin-bottom: 10px;">🏆 Achievements</h3>
+                    
+                    <!-- Achievement Progress Bar -->
+                    <div style="margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <span id="achievementProgress" style="color: #c4a57b; font-size: 14px;">0 / 0 Unlocked (0%)</span>
+                        </div>
+                        <div style="background: #1a1a1a; border: 1px solid #4a4a4a; border-radius: 8px; height: 20px; overflow: hidden;">
+                            <div id="achievementProgressBar" style="background: linear-gradient(90deg, #ffd700, #ff8c42); height: 100%; width: 0%; transition: width 0.5s;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Current Chapter -->
+                    <div id="currentChapter" style="background: linear-gradient(135deg, #2a2a2a, #1a1a1a); border: 2px solid #ff8c42; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                        <h4 style="color: #ff8c42; margin: 0 0 10px 0;">Current Chapter</h4>
+                        <div id="chapterContent"></div>
+                    </div>
+
+                    <!-- Achievement Categories -->
+                    <div id="achievementsList" style="max-height: 400px; overflow-y: auto;"></div>
+                </div>
             </div>
 
             <!-- Log Panel -->
@@ -681,6 +719,236 @@
             loanInterestRate: 0.15,
             contractPayMultiplier: 0.4
         };
+
+        // Achievement System
+        const ACHIEVEMENTS = {
+            // Crafting Achievements
+            crafting: [
+                { id: 'first_craft', name: 'First Steps', desc: 'Craft your first weapon', condition: () => gameState.totalCrafted >= 1, reward: { gold: 10 } },
+                { id: 'craft_10', name: 'Getting Started', desc: 'Craft 10 weapons', condition: () => gameState.totalCrafted >= 10, reward: { gold: 50, xp: 50 } },
+                { id: 'craft_50', name: 'Productive Smith', desc: 'Craft 50 weapons', condition: () => gameState.totalCrafted >= 50, reward: { gold: 200, xp: 100 } },
+                { id: 'craft_100', name: 'Mass Production', desc: 'Craft 100 weapons', condition: () => gameState.totalCrafted >= 100, reward: { gold: 500, xp: 200 } },
+                { id: 'craft_500', name: 'Forge Legend', desc: 'Craft 500 weapons', condition: () => gameState.totalCrafted >= 500, reward: { gold: 2000, xp: 500 } },
+            ],
+            
+            // Rarity Achievements
+            rarity: [
+                { id: 'first_uncommon', name: 'Uncommon Craft', desc: 'Craft an Uncommon or better weapon', condition: () => gameState.bestRarity >= 2, reward: { gold: 20 } },
+                { id: 'first_rare', name: 'Rare Creation', desc: 'Craft a Rare or better weapon', condition: () => gameState.bestRarity >= 3, reward: { gold: 50, xp: 25 } },
+                { id: 'first_epic', name: 'Epic Masterpiece', desc: 'Craft an Epic or better weapon', condition: () => gameState.bestRarity >= 4, reward: { gold: 100, xp: 50 } },
+                { id: 'first_legendary', name: 'Legendary Smith', desc: 'Craft a Legendary weapon', condition: () => gameState.bestRarity >= 5, reward: { gold: 300, xp: 100 } },
+                { id: 'first_mythic', name: 'Mythic Artisan', desc: 'Craft a Mythic weapon', condition: () => gameState.bestRarity >= 6, reward: { gold: 1000, xp: 500 } },
+            ],
+            
+            // Sales Achievements
+            sales: [
+                { id: 'first_sale', name: 'First Customer', desc: 'Sell your first weapon', condition: () => gameState.itemsSold >= 1, reward: { gold: 10 } },
+                { id: 'sell_10', name: 'Reliable Seller', desc: 'Sell 10 weapons', condition: () => gameState.itemsSold >= 10, reward: { gold: 50, xp: 25 } },
+                { id: 'sell_50', name: 'Merchant Smith', desc: 'Sell 50 weapons', condition: () => gameState.itemsSold >= 50, reward: { gold: 250, xp: 100 } },
+                { id: 'sell_100', name: 'Trade Master', desc: 'Sell 100 weapons', condition: () => gameState.itemsSold >= 100, reward: { gold: 500, xp: 200 } },
+                { id: 'sell_500', name: 'Commerce King', desc: 'Sell 500 weapons', condition: () => gameState.itemsSold >= 500, reward: { gold: 2500, xp: 500 } },
+            ],
+            
+            // Wealth Achievements
+            wealth: [
+                { id: 'gold_100', name: 'Penny Pincher', desc: 'Accumulate 100 gold', condition: () => gameState.peakGold >= 100, reward: { xp: 20 } },
+                { id: 'gold_500', name: 'Well Off', desc: 'Accumulate 500 gold', condition: () => gameState.peakGold >= 500, reward: { xp: 50 } },
+                { id: 'gold_1000', name: 'Wealthy Smith', desc: 'Accumulate 1,000 gold', condition: () => gameState.peakGold >= 1000, reward: { xp: 100 } },
+                { id: 'gold_5000', name: 'Rich Merchant', desc: 'Accumulate 5,000 gold', condition: () => gameState.peakGold >= 5000, reward: { xp: 250 } },
+                { id: 'gold_10000', name: 'Tycoon', desc: 'Accumulate 10,000 gold', condition: () => gameState.peakGold >= 10000, reward: { xp: 500 } },
+            ],
+            
+            // Progression Achievements
+            progression: [
+                { id: 'level_5', name: 'Novice Graduate', desc: 'Reach level 5', condition: () => gameState.level >= 5, reward: { gold: 100 } },
+                { id: 'level_10', name: 'Experienced Smith', desc: 'Reach level 10', condition: () => gameState.level >= 10, reward: { gold: 300 } },
+                { id: 'level_20', name: 'Veteran Craftsman', desc: 'Reach level 20', condition: () => gameState.level >= 20, reward: { gold: 1000 } },
+                { id: 'rank_apprentice', name: 'Apprentice Rank', desc: 'Become an Apprentice Blacksmith', condition: () => gameState.reputation >= 500, reward: { gold: 50 } },
+                { id: 'rank_renowned', name: 'Renowned Rank', desc: 'Become a Renowned Blacksmith', condition: () => gameState.reputation >= 2000, reward: { gold: 200 } },
+                { id: 'rank_master', name: 'Master Rank', desc: 'Become a Master Blacksmith', condition: () => gameState.reputation >= 25000, reward: { gold: 1000 } },
+            ],
+            
+            // Competition Achievements
+            competition: [
+                { id: 'defeat_rival', name: 'Rival Defeated', desc: 'Force a rival to close', condition: () => gameState.rivalsDefeated >= 1, reward: { gold: 100, xp: 50 } },
+                { id: 'defeat_3_rivals', name: 'Market Dominator', desc: 'Defeat 3 rivals', condition: () => gameState.rivalsDefeated >= 3, reward: { gold: 500, xp: 200 } },
+                { id: 'market_share_50', name: 'Market Leader', desc: 'Control 50% market share', condition: () => {
+                    const total = gameState.itemsSold + gameState.rivals.reduce((s, r) => s + r.sales, 0);
+                    return total > 0 && (gameState.itemsSold / total) >= 0.5;
+                }, reward: { gold: 300, xp: 150 } },
+            ],
+            
+            // Material Achievements
+            materials: [
+                { id: 'unlock_steel', name: 'Steel Age', desc: 'Purchase Steel for the first time', condition: () => gameState.materialsUnlocked.steel, reward: { gold: 25 } },
+                { id: 'unlock_silver', name: 'Silver Standard', desc: 'Purchase Silver for the first time', condition: () => gameState.materialsUnlocked.silver, reward: { gold: 50 } },
+                { id: 'unlock_mithril', name: 'Mithril Master', desc: 'Purchase Mithril for the first time', condition: () => gameState.materialsUnlocked.mithril, reward: { gold: 100 } },
+                { id: 'unlock_adamantine', name: 'Adamantine Artisan', desc: 'Purchase Adamantine for the first time', condition: () => gameState.materialsUnlocked.adamantine, reward: { gold: 250 } },
+            ],
+            
+            // Special Achievements
+            special: [
+                { id: 'survive_failure', name: 'Learning Experience', desc: 'Survive your first crafting failure', condition: () => gameState.totalFailures >= 1, reward: { xp: 10 } },
+                { id: 'fail_10', name: 'Persistent', desc: 'Fail 10 crafts and keep going', condition: () => gameState.totalFailures >= 10, reward: { gold: 50, xp: 25 } },
+                { id: 'gear_full_set', name: 'Fully Equipped', desc: 'Equip all 7 gear slots', condition: () => Object.keys(gameState.gear).length >= 7, reward: { gold: 500, xp: 100 } },
+                { id: 'all_upgrades', name: 'Fully Upgraded', desc: 'Purchase all forge upgrades', condition: () => {
+                    return upgrades.every(u => gameState.upgrades[u.id]);
+                }, reward: { gold: 1000, xp: 500 } },
+            ]
+        };
+
+        // Chapter System
+        const CHAPTERS = [
+            {
+                id: 1,
+                name: 'The Beginning',
+                repRange: [0, 500],
+                goals: [
+                    'Craft your first weapon',
+                    'Sell your first weapon',
+                    'Reach 100 gold',
+                    'Purchase Steel materials',
+                    'Become an Apprentice Blacksmith'
+                ]
+            },
+            {
+                id: 2,
+                name: 'Building Reputation',
+                repRange: [500, 2000],
+                goals: [
+                    'Craft an Uncommon weapon',
+                    'Sell 25 weapons',
+                    'Reach level 5',
+                    'Purchase your first upgrade',
+                    'Become a Renowned Blacksmith'
+                ]
+            },
+            {
+                id: 3,
+                name: 'Market Competition',
+                repRange: [2000, 10000],
+                goals: [
+                    'Craft a Rare weapon',
+                    'Defeat your first rival',
+                    'Reach 1,000 gold',
+                    'Craft a full set of gear',
+                    'Become a Skilled Blacksmith'
+                ]
+            },
+            {
+                id: 4,
+                name: 'Master Craftsman',
+                repRange: [10000, 50000],
+                goals: [
+                    'Craft an Epic weapon',
+                    'Control 50% market share',
+                    'Reach level 15',
+                    'Purchase all upgrades',
+                    'Become a Master Blacksmith'
+                ]
+            },
+            {
+                id: 5,
+                name: 'Path to Legend',
+                repRange: [50000, 100000],
+                goals: [
+                    'Craft a Legendary weapon',
+                    'Defeat all rivals',
+                    'Reach 10,000 gold',
+                    'Sell 250 weapons',
+                    'Become Blacksmith of Legend'
+                ]
+            }
+        ];
+
+        // Fantasy Calendar System
+        const CALENDAR = {
+            months: [
+                { name: 'January', season: 'winter', seasonName: 'Frosthold', days: 31 },
+                { name: 'February', season: 'winter', seasonName: 'Frosthold', days: 28 },
+                { name: 'March', season: 'spring', seasonName: 'Bloomtide', days: 31 },
+                { name: 'April', season: 'spring', seasonName: 'Bloomtide', days: 30 },
+                { name: 'May', season: 'spring', seasonName: 'Bloomtide', days: 31 },
+                { name: 'June', season: 'summer', seasonName: 'Sunpeak', days: 30 },
+                { name: 'July', season: 'summer', seasonName: 'Sunpeak', days: 31 },
+                { name: 'August', season: 'summer', seasonName: 'Sunpeak', days: 31 },
+                { name: 'September', season: 'autumn', seasonName: 'Harvestmoon', days: 30 },
+                { name: 'October', season: 'autumn', seasonName: 'Harvestmoon', days: 31 },
+                { name: 'November', season: 'autumn', seasonName: 'Harvestmoon', days: 30 },
+                { name: 'December', season: 'winter', seasonName: 'Frosthold', days: 31 }
+            ],
+            timePeriods: ['Dawn', 'Morning', 'Midday', 'Afternoon', 'Dusk', 'Evening', 'Night', 'Midnight']
+        };
+
+        function generateRandomStartDate() {
+            const month = Math.floor(Math.random() * 12); // Random month for variety
+            const day = 1; // Always start on day 1
+            const year = 1; // Always start at year 1
+            const timePeriod = 0; // Start at Dawn
+            
+            return {
+                year: year,
+                month: month,
+                day: day,
+                timePeriod: timePeriod,
+                totalMinutes: 0 // Track total game time
+            };
+        }
+
+        function advanceGameTime(minutes) {
+            if (!gameState.gameTime) return; // Don't advance if game hasn't started
+            
+            gameState.gameTime.totalMinutes += minutes;
+            
+            // Every 90 minutes = 1 time period
+            const periodsToAdvance = Math.floor(gameState.gameTime.totalMinutes / 90);
+            if (periodsToAdvance > 0) {
+                gameState.gameTime.totalMinutes %= 90;
+                gameState.gameTime.timePeriod += periodsToAdvance;
+                
+                // Advance days
+                while (gameState.gameTime.timePeriod >= CALENDAR.timePeriods.length) {
+                    gameState.gameTime.timePeriod -= CALENDAR.timePeriods.length;
+                    gameState.gameTime.day++;
+                    
+                    // Advance months
+                    const currentMonth = CALENDAR.months[gameState.gameTime.month];
+                    if (gameState.gameTime.day > currentMonth.days) {
+                        gameState.gameTime.day = 1;
+                        gameState.gameTime.month++;
+                        
+                        // Advance years
+                        if (gameState.gameTime.month >= 12) {
+                            gameState.gameTime.month = 0;
+                            gameState.gameTime.year++;
+                        }
+                    }
+                }
+            }
+        }
+
+        function getGameTimeString() {
+            const month = CALENDAR.months[gameState.gameTime.month];
+            const period = CALENDAR.timePeriods[gameState.gameTime.timePeriod];
+            return `${month.name} ${gameState.gameTime.day}, ${period}`;
+        }
+
+        function getCurrentRank() {
+            const rep = gameState.reputation;
+            if (rep >= 100000) return 'Blacksmith of Legend';
+            if (rep >= 50000) return 'Legendary Blacksmith';
+            if (rep >= 25000) return 'Master Blacksmith';
+            if (rep >= 10000) return 'Expert Blacksmith';
+            if (rep >= 5000) return 'Skilled Blacksmith';
+            if (rep >= 2000) return 'Renowned Blacksmith';
+            if (rep >= 500) return 'Apprentice Blacksmith';
+            return 'Novice Blacksmith';
+        }
+
+        function getCurrentSeason() {
+            if (!gameState.gameTime) return 'spring'; // Default fallback
+            return CALENDAR.months[gameState.gameTime.month].season;
+        }
 
         const materials = {
             iron: { name: 'Iron', cost: 10, quality: 1, failRate: 0.05 },
@@ -766,7 +1034,8 @@
                     'Northern border conflict - military seeks suppliers!',
                     'Civil unrest - guards need equipment urgently!'
                 ],
-                effect: { demandMulti: 2.0, priceMulti: 1.3 }
+                effect: { demandMulti: 2.0, priceMulti: 1.3 },
+                seasons: ['spring', 'summer', 'autumn', 'winter']
             },
             {
                 type: 'event',
@@ -776,7 +1045,8 @@
                     'Diplomatic resolution reached - military downsizing',
                     'Treaty signed - reduced military spending'
                 ],
-                effect: { demandMulti: 0.6, priceMulti: 0.9 }
+                effect: { demandMulti: 0.6, priceMulti: 0.9 },
+                seasons: ['spring', 'summer', 'autumn', 'winter']
             },
             {
                 type: 'event',
@@ -786,7 +1056,8 @@
                     'Harvest festival - ceremonial weapons in demand',
                     'Royal celebration - decorative weapons requested'
                 ],
-                effect: { demandMulti: 1.4, priceMulti: 1.2 }
+                effect: { demandMulti: 1.4, priceMulti: 1.2 },
+                seasons: ['spring', 'summer', 'autumn']
             },
             {
                 type: 'event',
@@ -796,7 +1067,19 @@
                     'Trade routes blocked - material shortage!',
                     'Deep freeze - supply chain disrupted'
                 ],
-                effect: { materialCostMulti: 1.5 }
+                effect: { materialCostMulti: 1.5 },
+                seasons: ['winter']
+            },
+            {
+                type: 'event',
+                title: 'SPRING THAW',
+                messages: [
+                    'Mines reopening - metals flowing again!',
+                    'Trade routes clear - prices normalizing',
+                    'Warm weather brings material abundance'
+                ],
+                effect: { materialCostMulti: 0.8 },
+                seasons: ['spring']
             },
             {
                 type: 'event',
@@ -806,7 +1089,19 @@
                     'Trade routes thriving - material prices drop',
                     'Supply surplus - cheap materials available'
                 ],
-                effect: { materialCostMulti: 0.7 }
+                effect: { materialCostMulti: 0.7 },
+                seasons: ['summer', 'autumn']
+            },
+            {
+                type: 'event',
+                title: 'AUTUMN RAINS',
+                messages: [
+                    'Heavy rains slow production - prices rising',
+                    'Flooding disrupts supply chains',
+                    'Wet season complicates mining operations'
+                ],
+                effect: { materialCostMulti: 1.3 },
+                seasons: ['autumn']
             }
         ];
 
@@ -892,8 +1187,84 @@
             nextCustomerTime: 0,
             nextEventTime: 0,
             weaponIdCounter: 0,
-            tutorialComplete: false
+            tutorialComplete: false,
+            gameTime: null, // Will be initialized on game start
+            lastSaved: null, // Track when last saved
+            // Achievement tracking
+            achievements: {}, // {achievementId: true}
+            totalCrafted: 0,
+            totalFailures: 0,
+            bestRarity: 0, // 0=Poor, 1=Common, 2=Uncommon, 3=Rare, 4=Epic, 5=Legendary, 6=Mythic
+            peakGold: 100,
+            rivalsDefeated: 0,
+            materialsUnlocked: {
+                iron: true,
+                steel: false,
+                silver: false,
+                mithril: false,
+                adamantine: false
+            }
         };
+
+        // ============================================
+        // ACHIEVEMENT SYSTEM
+        // ============================================
+
+        function checkAchievements() {
+            let newAchievements = [];
+            
+            // Check all achievement categories
+            Object.keys(ACHIEVEMENTS).forEach(category => {
+                ACHIEVEMENTS[category].forEach(achievement => {
+                    // Skip if already unlocked
+                    if (gameState.achievements[achievement.id]) return;
+                    
+                    // Check condition
+                    if (achievement.condition()) {
+                        gameState.achievements[achievement.id] = true;
+                        newAchievements.push(achievement);
+                        
+                        // Apply rewards
+                        if (achievement.reward.gold) {
+                            gameState.gold += achievement.reward.gold;
+                        }
+                        if (achievement.reward.xp) {
+                            addExperience(achievement.reward.xp);
+                        }
+                        
+                        // Log achievement
+                        log(`🏆 Achievement Unlocked: ${achievement.name}!`, 'success');
+                    }
+                });
+            });
+            
+            return newAchievements;
+        }
+
+        function getAchievementProgress() {
+            let total = 0;
+            let unlocked = 0;
+            
+            Object.keys(ACHIEVEMENTS).forEach(category => {
+                total += ACHIEVEMENTS[category].length;
+                ACHIEVEMENTS[category].forEach(achievement => {
+                    if (gameState.achievements[achievement.id]) {
+                        unlocked++;
+                    }
+                });
+            });
+            
+            return { unlocked, total, percentage: Math.floor((unlocked / total) * 100) };
+        }
+
+        function getCurrentChapter() {
+            for (let chapter of CHAPTERS) {
+                if (gameState.reputation >= chapter.repRange[0] && gameState.reputation < chapter.repRange[1]) {
+                    return chapter;
+                }
+            }
+            return CHAPTERS[CHAPTERS.length - 1]; // Return final chapter if beyond
+        }
 
         // ============================================
         // HELPER FUNCTIONS
@@ -903,12 +1274,24 @@
             const logDiv = document.getElementById('gameLog');
             const entry = document.createElement('div');
             entry.className = `log-entry ${type}`;
-            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            
+            let timestamp = '[--]';
+            if (gameState.gameTime) {
+                const month = CALENDAR.months[gameState.gameTime.month];
+                timestamp = `[Day ${gameState.gameTime.day}, ${month.name}]`;
+            }
+            
+            entry.textContent = `${timestamp} ${message}`;
             logDiv.insertBefore(entry, logDiv.firstChild);
             
             while (logDiv.children.length > 30) {
                 logDiv.removeChild(logDiv.lastChild);
             }
+        }
+
+        function clearLog() {
+            const logDiv = document.getElementById('gameLog');
+            logDiv.innerHTML = '';
         }
 
         function switchTab(tabName) {
@@ -920,13 +1303,14 @@
         }
 
         function saveGame(slot = 1) {
+            gameState.lastSaved = new Date().toISOString();
             const saveData = {
                 ...gameState,
-                saveDate: new Date().toISOString(),
+                saveDate: gameState.lastSaved,
                 version: '1.0'
             };
             localStorage.setItem(`forgeMasterSave${slot}`, JSON.stringify(saveData));
-            log(`Game saved to slot ${slot}`, 'success');
+            // Don't log saves to activity log anymore
         }
 
         function loadGame(slot = 1) {
@@ -936,6 +1320,7 @@
                 Object.assign(gameState, loaded);
                 document.getElementById('forgeNameDisplay').textContent = gameState.forgeName;
                 document.getElementById('startupModal').classList.remove('active');
+                clearLog(); // Clear old log entries
                 log(`Game loaded from slot ${slot}!`, 'success');
                 updateUI();
                 return true;
@@ -963,11 +1348,13 @@
             if (confirm(`Are you sure you want to delete save slot ${slot}?`)) {
                 localStorage.removeItem(`forgeMasterSave${slot}`);
                 log(`Save slot ${slot} deleted`, 'info');
-                updateUI();
+                updateSaveLoadUI(); // Refresh the save/load menu
             }
         }
 
         function showSaveLoadMenu() {
+            // Hide startup modal if it's showing
+            document.getElementById('startupModal').classList.remove('active');
             const menu = document.getElementById('saveLoadMenu');
             menu.classList.add('active');
             updateSaveLoadUI();
@@ -1020,15 +1407,13 @@
         function loadFromSlot(slot) {
             if (loadGame(slot)) {
                 hideSaveLoadMenu();
+                document.getElementById('startupModal').classList.remove('active');
             }
         }
 
         function getEffectiveLuck() {
-            let totalLuck = gameState.hiddenLuck;
-            Object.values(gameState.gear).forEach(item => {
-                if (item && item.luckBonus) totalLuck += item.luckBonus;
-            });
-            return totalLuck;
+            const gearBonuses = getGearBonuses();
+            return gameState.hiddenLuck + gearBonuses.luck;
         }
 
         function getRarityFromScore(score) {
@@ -1145,11 +1530,19 @@
                 return;
             }
 
+            // Advance time based on weapon complexity
+            const craftTime = weapon.baseTime / 1000; // Convert ms to "minutes"
+            let timeToAdvance = craftTime;
+            if (gameState.upgrades.apprenticeHired) timeToAdvance *= 0.8;
+            advanceGameTime(Math.floor(timeToAdvance));
+
             // Check for failure
             const failChance = calculateFailureChance(materialType);
             if (Math.random() < failChance) {
                 gameState.materials[materialType] -= requiredMaterial;
+                gameState.totalFailures++; // Track failures
                 log(`Crafting failed! ${requiredMaterial} ${material.name} wasted. The gods were not with you.`, 'error');
+                checkAchievements(); // Check for failure-related achievements
                 updateUI();
                 return;
             }
@@ -1159,6 +1552,12 @@
             // Calculate quality and rarity
             const qualityScore = calculateQualityScore(material.quality);
             const rarity = getRarityFromScore(qualityScore);
+            
+            // Track best rarity
+            const rarityIndex = rarityTiers.findIndex(t => t.name === rarity.name);
+            if (rarityIndex > gameState.bestRarity) {
+                gameState.bestRarity = rarityIndex;
+            }
             
             // Generate perks
             const perks = generateWeaponPerks(rarity, material.quality);
@@ -1184,12 +1583,16 @@
             };
 
             gameState.weapons.push(newWeapon);
+            gameState.totalCrafted++; // Track total crafted
             
             // Add XP
             const xpGain = Math.floor(material.quality * 10 * (1 + perks.length * 0.2));
             addExperience(xpGain);
             
             log(`Crafted a ${rarity.name} ${name}! Worth ${value} gold (+${xpGain} XP)`, 'success');
+            
+            // Check achievements after crafting
+            checkAchievements();
             updateUI();
         }
 
@@ -1210,7 +1613,9 @@
                 gameState.statPoints += 3;
                 log(`🎉 LEVEL UP! You are now level ${gameState.level}! You gained 3 stat points.`, 'success');
                 document.getElementById('levelUpAlert').style.display = 'block';
+                checkAchievements(); // Check for level achievements
             }
+            updateUI();
         }
 
         function distributeStat(statName, amount) {
@@ -1225,35 +1630,115 @@
         // GEAR SYSTEM
         // ============================================
 
+        // ============================================
+        // GEAR SYSTEM
+        // ============================================
+
+        const gearPerks = [
+            // Luck perks (30% of pool)
+            { type: 'luck', name: 'of Fortune', min: 1, max: 10 },
+            { type: 'luck', name: 'of Luck', min: 1, max: 10 },
+            { type: 'luck', name: 'of the Gambler', min: 1, max: 10 },
+            
+            // Smithing perks (quality bonus)
+            { type: 'smithing', name: 'of the Master', min: 1, max: 5 },
+            { type: 'smithing', name: 'of Precision', min: 1, max: 5 },
+            { type: 'smithing', name: 'of Expertise', min: 1, max: 5 },
+            { type: 'smithing', name: 'of the Craftsman', min: 1, max: 5 },
+            
+            // Efficiency perks (material cost reduction %)
+            { type: 'efficiency', name: 'of Efficiency', min: 1, max: 5 },
+            { type: 'efficiency', name: 'of Conservation', min: 1, max: 5 },
+            { type: 'efficiency', name: 'of Resourcefulness', min: 1, max: 5 },
+            
+            // Speed perks (crafting speed %)
+            { type: 'speed', name: 'of Haste', min: 1, max: 5 },
+            { type: 'speed', name: 'of Swiftness', min: 1, max: 5 },
+            { type: 'speed', name: 'of Alacrity', min: 1, max: 5 },
+            
+            // Business perks (price bonus %)
+            { type: 'business', name: 'of Commerce', min: 1, max: 5 },
+            { type: 'business', name: 'of the Merchant', min: 1, max: 5 },
+            { type: 'business', name: 'of Prosperity', min: 1, max: 5 },
+            
+            // Gold find perks
+            { type: 'goldFind', name: 'of Wealth', min: 1, max: 3 },
+            { type: 'goldFind', name: 'of Greed', min: 1, max: 3 },
+            
+            // XP bonus perks
+            { type: 'xpBonus', name: 'of Learning', min: 1, max: 3 },
+            { type: 'xpBonus', name: 'of Wisdom', min: 1, max: 3 }
+        ];
+
         function generateGearPiece(slot) {
             const baseLuck = gameState.hiddenLuck;
             
-            // Roll luck bonus (1-10, influenced by hidden luck)
-            let luckBonus = 0;
-            const roll = Math.random() * 100;
+            // Select a random perk type
+            const perk = gearPerks[Math.floor(Math.random() * gearPerks.length)];
             
-            // Distribution influenced by hidden luck
-            for (let i = 1; i <= 10; i++) {
-                const threshold = Math.pow(0.95, i - baseLuck * 0.1) * 100;
-                if (roll >= threshold) {
-                    luckBonus = i;
-                } else {
-                    break;
+            // Roll the bonus value (influenced by hidden luck for luck-type perks)
+            let bonusValue;
+            if (perk.type === 'luck') {
+                // Luck perks: influenced by current hidden luck
+                bonusValue = 0;
+                const roll = Math.random() * 100;
+                
+                for (let i = perk.min; i <= perk.max; i++) {
+                    const threshold = Math.pow(0.95, i - baseLuck * 0.1) * 100;
+                    if (roll >= threshold) {
+                        bonusValue = i;
+                    } else {
+                        break;
+                    }
                 }
+                
+                if (bonusValue === 0) bonusValue = perk.min;
+            } else {
+                // Other perks: random within range
+                bonusValue = perk.min + Math.floor(Math.random() * (perk.max - perk.min + 1));
             }
-            
-            if (luckBonus === 0) luckBonus = 1;
             
             return {
                 slot: slot,
-                name: `${gearNames[slot]} of Fortune`,
-                luckBonus: luckBonus
+                name: `${gearNames[slot]} ${perk.name}`,
+                perkType: perk.type,
+                perkValue: bonusValue,
+                // Keep legacy luckBonus for compatibility, set to 0 if not luck type
+                luckBonus: perk.type === 'luck' ? bonusValue : 0
             };
+        }
+
+        function getGearBonuses() {
+            const bonuses = {
+                luck: 0,
+                smithing: 0,
+                efficiency: 0,
+                speed: 0,
+                business: 0,
+                goldFind: 0,
+                xpBonus: 0
+            };
+            
+            Object.values(gameState.gear).forEach(item => {
+                if (item && item.perkType) {
+                    bonuses[item.perkType] += item.perkValue;
+                }
+            });
+            
+            return bonuses;
         }
 
         function equipGear(slot, item) {
             gameState.gear[slot] = item;
-            log(`Equipped ${item.name} (+${item.luckBonus} Luck)`, 'success');
+            const perkLabel = item.perkType === 'luck' ? 'Luck' : 
+                             item.perkType === 'smithing' ? 'Smithing' :
+                             item.perkType === 'efficiency' ? 'Efficiency %' :
+                             item.perkType === 'speed' ? 'Speed %' :
+                             item.perkType === 'business' ? 'Business %' :
+                             item.perkType === 'goldFind' ? 'Gold Find %' :
+                             item.perkType === 'xpBonus' ? 'XP Bonus %' : item.perkType;
+            log(`Equipped ${item.name} (+${item.perkValue} ${perkLabel})`, 'success');
+            checkAchievements(); // Check for gear-related achievements
             updateUI();
         }
 
@@ -1316,6 +1801,12 @@
             }
 
             gameState.gold += salePrice;
+            
+            // Track peak gold for achievements
+            if (gameState.gold > gameState.peakGold) {
+                gameState.peakGold = gameState.gold;
+            }
+            
             const repGain = Math.floor(weapon.qualityScore / 5) + weapon.perks.length * 2;
             gameState.reputation += repGain;
             gameState.itemsSold++;
@@ -1329,6 +1820,7 @@
             log(`Sold ${weapon.name} to ${customer.name} for ${salePrice} gold! (+${repGain} rep)`, 'success');
             
             checkVictory();
+            checkAchievements(); // Check for sale/gold/reputation achievements
             updateUI();
         }
 
@@ -1388,14 +1880,22 @@
         function checkRivalElimination() {
             const playerMarketShare = gameState.itemsSold / (gameState.itemsSold + gameState.rivals.reduce((sum, r) => sum + r.sales, 0) + 1);
             
+            const initialRivalCount = gameState.rivals.length;
+            
             gameState.rivals = gameState.rivals.filter(rival => {
                 if (rival.sales < gameState.itemsSold * 0.1 && gameState.reputation > rival.reputation * 2) {
                     log(`${rival.name} has closed due to lack of business!`, 'info');
                     addNotice('rival', 'BUSINESS CLOSURE', `${rival.name} unable to compete - shutting down permanently`);
+                    gameState.rivalsDefeated++; // Track defeated rivals
                     return false;
                 }
                 return true;
             });
+            
+            // Check achievements if any rivals were defeated
+            if (gameState.rivals.length < initialRivalCount) {
+                checkAchievements();
+            }
         }
 
         // ============================================
@@ -1408,14 +1908,19 @@
         }
 
         function triggerWorldEvent() {
-            const event = worldEvents[Math.floor(Math.random() * worldEvents.length)];
+            const currentSeason = getCurrentSeason();
+            const seasonalEvents = worldEvents.filter(e => e.seasons.includes(currentSeason));
+            
+            if (seasonalEvents.length === 0) return; // Fallback if no events for season
+            
+            const event = seasonalEvents[Math.floor(Math.random() * seasonalEvents.length)];
             const message = event.messages[Math.floor(Math.random() * event.messages.length)];
             
             gameState.activeEvent = event;
             gameState.eventEndTime = Date.now() + 60000; // 1 minute
             
             addNotice(event.type, event.title, message);
-            log(`World Event: ${event.title}`, 'info');
+            log(`World Event: ${event.title}`, 'info'); // Log to activity log too
         }
 
         function triggerChoiceEvent() {
@@ -1551,6 +2056,12 @@
             gameState.gold -= cost;
             gameState.materials[materialType] = (gameState.materials[materialType] || 0) + amount;
             
+            // Track material unlock for achievements
+            if (!gameState.materialsUnlocked[materialType]) {
+                gameState.materialsUnlocked[materialType] = true;
+                checkAchievements(); // Check for material unlock achievements
+            }
+            
             log(`Purchased ${amount}x ${material.name} for ${cost} gold`, 'success');
             updateUI();
         }
@@ -1577,6 +2088,7 @@
             gameState.upgrades[upgradeId] = true;
             
             log(`Purchased ${upgrade.name}!`, 'success');
+            checkAchievements(); // Check for upgrade achievements
             updateUI();
         }
 
@@ -1643,6 +2155,36 @@
             document.getElementById('itemsSold').textContent = gameState.itemsSold;
             document.getElementById('statPointsAvailable').textContent = gameState.statPoints;
             document.getElementById('availablePoints').textContent = gameState.statPoints;
+
+            // Update rank display
+            document.getElementById('rankDisplay').textContent = getCurrentRank();
+
+            // Update game time display (single location now)
+            if (gameState.gameTime) {
+                const month = CALENDAR.months[gameState.gameTime.month];
+                // Format: Day X, Month Name, Year Y
+                document.getElementById('statusDateDisplay').textContent = 
+                    `Day ${gameState.gameTime.day}, ${month.name}, Year ${gameState.gameTime.year}`;
+            }
+
+            // Update last saved indicator
+            if (gameState.lastSaved) {
+                const lastSaved = new Date(gameState.lastSaved);
+                const now = new Date();
+                const secondsAgo = Math.floor((now - lastSaved) / 1000);
+                
+                let timeText;
+                if (secondsAgo < 60) {
+                    timeText = 'Just now';
+                } else if (secondsAgo < 3600) {
+                    const mins = Math.floor(secondsAgo / 60);
+                    timeText = `${mins} min${mins > 1 ? 's' : ''} ago`;
+                } else {
+                    timeText = lastSaved.toLocaleTimeString();
+                }
+                
+                document.getElementById('lastSavedIndicator').textContent = `Last saved: ${timeText}`;
+            }
 
             if (gameState.statPoints === 0) {
                 document.getElementById('levelUpAlert').style.display = 'none';
@@ -1782,7 +2324,13 @@
                                 <div style="font-weight: bold; color: #ff8c42;">${gearNames[slot]}</div>
                                 ${equipped ? `
                                     <div style="color: #ffd700; font-size: 0.9em;">${equipped.name}</div>
-                                    <div style="color: #4CAF50;">+${equipped.luckBonus} Luck</div>
+                                    <div style="color: #4CAF50;">+${equipped.perkValue} ${equipped.perkType === 'luck' ? 'Luck' : 
+                                        equipped.perkType === 'smithing' ? 'Smithing' :
+                                        equipped.perkType === 'efficiency' ? 'Efficiency %' :
+                                        equipped.perkType === 'speed' ? 'Speed %' :
+                                        equipped.perkType === 'business' ? 'Business %' :
+                                        equipped.perkType === 'goldFind' ? 'Gold Find %' :
+                                        equipped.perkType === 'xpBonus' ? 'XP Bonus %' : equipped.perkType}</div>
                                 ` : `<div style="color: #888; font-style: italic;">Empty</div>`}
                             </div>
                             <div>
@@ -1909,7 +2457,89 @@
                 `;
             }
 
+            // Achievements Tab
+            updateAchievementsUI();
+
             saveGame();
+        }
+
+        function updateAchievementsUI() {
+            // Update progress bar
+            const progress = getAchievementProgress();
+            document.getElementById('achievementProgress').textContent = 
+                `${progress.unlocked} / ${progress.total} Unlocked (${progress.percentage}%)`;
+            document.getElementById('achievementProgressBar').style.width = `${progress.percentage}%`;
+
+            // Update current chapter
+            const chapter = getCurrentChapter();
+            const chapterContent = document.getElementById('chapterContent');
+            chapterContent.innerHTML = `
+                <div style="margin-bottom: 8px;">
+                    <span style="color: #ffd700; font-size: 18px; font-weight: bold;">${chapter.name}</span>
+                    <span style="color: #c4a57b; margin-left: 10px;">(${chapter.repRange[0].toLocaleString()} - ${chapter.repRange[1].toLocaleString()} rep)</span>
+                </div>
+                <div style="color: #888; font-size: 14px; margin-bottom: 10px;">Chapter Goals:</div>
+                <ul style="margin: 0; padding-left: 20px; color: #c4a57b;">
+                    ${chapter.goals.map(goal => `<li style="margin: 3px 0;">${goal}</li>`).join('')}
+                </ul>
+            `;
+
+            // Display achievements by category
+            const achievementsList = document.getElementById('achievementsList');
+            const categoryNames = {
+                crafting: '⚒️ Crafting',
+                rarity: '💎 Rarity',
+                sales: '💰 Sales',
+                wealth: '👑 Wealth',
+                progression: '📈 Progression',
+                competition: '⚔️ Competition',
+                materials: '🔨 Materials',
+                special: '✨ Special'
+            };
+
+            achievementsList.innerHTML = Object.keys(ACHIEVEMENTS).map(category => {
+                const achievements = ACHIEVEMENTS[category];
+                const unlocked = achievements.filter(a => gameState.achievements[a.id]).length;
+                
+                return `
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #ff8c42; margin-bottom: 10px;">
+                            ${categoryNames[category]} 
+                            <span style="color: #c4a57b; font-size: 14px; font-weight: normal;">(${unlocked}/${achievements.length})</span>
+                        </h4>
+                        <div style="display: grid; gap: 8px;">
+                            ${achievements.map(achievement => {
+                                const isUnlocked = gameState.achievements[achievement.id];
+                                return `
+                                    <div style="
+                                        background: ${isUnlocked ? 'linear-gradient(135deg, #2a2a2a, #1a1a1a)' : 'rgba(26, 26, 26, 0.5)'};
+                                        border: 2px solid ${isUnlocked ? '#ffd700' : '#4a4a4a'};
+                                        border-radius: 8px;
+                                        padding: 12px;
+                                        ${isUnlocked ? '' : 'opacity: 0.6;'}
+                                    ">
+                                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 5px;">
+                                            <div style="flex: 1;">
+                                                <div style="color: ${isUnlocked ? '#ffd700' : '#888'}; font-weight: bold; margin-bottom: 3px;">
+                                                    ${isUnlocked ? '🏆 ' : '🔒 '}${achievement.name}
+                                                </div>
+                                                <div style="color: #c4a57b; font-size: 13px;">${achievement.desc}</div>
+                                            </div>
+                                        </div>
+                                        ${achievement.reward && (achievement.reward.gold || achievement.reward.xp) ? `
+                                            <div style="color: #888; font-size: 12px; margin-top: 5px;">
+                                                Reward: ${achievement.reward.gold ? `${achievement.reward.gold}g` : ''} 
+                                                ${achievement.reward.gold && achievement.reward.xp ? '+ ' : ''}
+                                                ${achievement.reward.xp ? `${achievement.reward.xp} XP` : ''}
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         function craftGear(slot) {
@@ -1940,16 +2570,20 @@
                 updateUI();
             }
 
-            // World events
-            if (now > gameState.eventEndTime && now - gameState.nextEventTime > 45000) {
-                if (Math.random() < 0.3) {
+            // World events (MUCH rarer now - 5-10 minutes between events)
+            const timeSinceLastEvent = now - gameState.nextEventTime;
+            const minEventInterval = 300000; // 5 minutes minimum
+            const eventChancePerSecond = 0.003; // 0.3% chance per second after minimum time
+            
+            if (now > gameState.eventEndTime && timeSinceLastEvent > minEventInterval) {
+                if (Math.random() < eventChancePerSecond) {
                     triggerWorldEvent();
                     gameState.nextEventTime = now;
                 }
             }
 
-            // Random choice events
-            if (Math.random() < 0.001 && gameState.tutorialComplete) {
+            // Random choice events (also rare)
+            if (Math.random() < 0.0005 && gameState.tutorialComplete) { // 0.05% per second
                 triggerChoiceEvent();
             }
 
@@ -1984,18 +2618,21 @@
 
             gameState.playerName = charName;
             gameState.forgeName = forgeName;
+            gameState.gameTime = generateRandomStartDate();
             
             document.getElementById('forgeNameDisplay').textContent = forgeName;
             document.getElementById('startupModal').classList.remove('active');
 
             generateRivals();
             
+            clearLog(); // Clear old log entries
             log(`Welcome, ${charName}! ${forgeName} is now open for business!`, 'success');
             log('Start by buying materials and crafting weapons to sell to customers.', 'info');
             
             addNotice('gossip', 'NEW BUSINESS', `${forgeName} opens its doors in town`);
             
             gameState.tutorialComplete = true;
+            checkAchievements(); // Check initial achievements (like starting gold)
             updateUI();
         }
 
@@ -2005,14 +2642,23 @@
             const save1 = getSaveInfo(1);
             const save2 = getSaveInfo(2);
             
-            if ((save1.exists || save2.exists) && confirm('You have existing saves. Open Save/Load menu?')) {
-                showSaveLoadMenu();
+            if (save1.exists || save2.exists) {
+                // Hide startup modal first
+                document.getElementById('startupModal').classList.remove('active');
+                
+                // Then show confirm dialog
+                if (confirm('You have existing saves. Open Save/Load menu?')) {
+                    showSaveLoadMenu();
+                } else {
+                    // User declined, show startup modal again for new game
+                    document.getElementById('startupModal').classList.add('active');
+                }
             }
             updateUI();
         });
 
         setInterval(gameLoop, 1000);
-        setInterval(() => saveGame(1), 30000); // Auto-save to slot 1 every 30 seconds
+        setInterval(() => saveGame(1), 120000); // Auto-save to slot 1 every 2 minutes
     </script>
 </body>
 </html>
