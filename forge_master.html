@@ -1,0 +1,2018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forge Master - Blacksmith Tycoon</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Text', serif;
+            background: #0a0604;
+            color: #e8d5b7;
+            min-height: 100vh;
+            padding: 20px;
+            background-image: 
+                radial-gradient(ellipse at 20% 80%, rgba(139, 69, 19, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(255, 100, 0, 0.1) 0%, transparent 50%);
+        }
+
+        .game-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 30px;
+            background: linear-gradient(135deg, rgba(139, 69, 19, 0.3) 0%, rgba(0, 0, 0, 0.5) 100%);
+            border-radius: 15px;
+            border: 3px solid #4a2511;
+            box-shadow: 0 8px 32px rgba(255, 100, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent 30%, rgba(255, 140, 0, 0.1) 50%, transparent 70%);
+            animation: shimmer 8s infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { transform: translateX(-50%) translateY(-50%) rotate(0deg); }
+            50% { transform: translateX(0%) translateY(0%) rotate(180deg); }
+        }
+
+        h1 {
+            font-family: 'Cinzel', serif;
+            color: #ff8c42;
+            font-size: 3em;
+            text-shadow: 
+                2px 2px 4px rgba(0, 0, 0, 0.8),
+                0 0 20px rgba(255, 100, 0, 0.5);
+            margin-bottom: 10px;
+            position: relative;
+            letter-spacing: 2px;
+        }
+
+        .forge-name {
+            font-family: 'Cinzel', serif;
+            color: #ffd700;
+            font-size: 1.5em;
+            font-style: normal;
+            margin-top: 15px;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .subtitle {
+            color: #c4a57b;
+            font-style: italic;
+            font-size: 1.2em;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .panel {
+            background: linear-gradient(135deg, rgba(20, 15, 10, 0.9) 0%, rgba(10, 6, 4, 0.95) 100%);
+            border: 2px solid #4a2511;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+        }
+
+        .panel h2 {
+            font-family: 'Cinzel', serif;
+            color: #ff8c42;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+            border-bottom: 2px solid #4a2511;
+            padding-bottom: 10px;
+            text-shadow: 0 0 10px rgba(255, 100, 0, 0.3);
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stat {
+            background: rgba(74, 37, 17, 0.3);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #4a2511;
+            transition: all 0.3s;
+        }
+
+        .stat:hover {
+            background: rgba(74, 37, 17, 0.5);
+            border-color: #8b4513;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #c4a57b;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #ff8c42;
+            font-family: 'Cinzel', serif;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            flex: 1;
+            min-width: 100px;
+            padding: 12px;
+            background: rgba(74, 37, 17, 0.3);
+            border: 2px solid #4a2511;
+            color: #e8d5b7;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: 'Crimson Text', serif;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9em;
+        }
+
+        .tab-btn:hover {
+            background: rgba(74, 37, 17, 0.5);
+            border-color: #8b4513;
+            transform: translateY(-2px);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #8b4513 0%, #a0522d 100%);
+            color: #ffd700;
+            border-color: #ff8c42;
+            box-shadow: 0 0 15px rgba(255, 140, 66, 0.4);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .item-list {
+            display: grid;
+            gap: 12px;
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .item-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .item-list::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+        }
+
+        .item-list::-webkit-scrollbar-thumb {
+            background: #8b4513;
+            border-radius: 4px;
+        }
+
+        .item {
+            background: rgba(74, 37, 17, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #4a2511;
+            transition: all 0.3s;
+        }
+
+        .item:hover {
+            background: rgba(74, 37, 17, 0.4);
+            border-color: #8b4513;
+            transform: translateX(5px);
+        }
+
+        .item-info h3 {
+            color: #ff8c42;
+            margin-bottom: 8px;
+            font-family: 'Cinzel', serif;
+            font-size: 1.1em;
+        }
+
+        .item-details {
+            font-size: 0.95em;
+            color: #c4a57b;
+            margin-bottom: 5px;
+        }
+
+        .perk-tag {
+            display: inline-block;
+            background: rgba(139, 69, 19, 0.4);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            margin: 3px;
+            border: 1px solid #8b4513;
+            color: #ffd700;
+        }
+
+        button {
+            background: linear-gradient(135deg, #8b4513 0%, #654321 100%);
+            color: #e8d5b7;
+            border: 2px solid #4a2511;
+            padding: 10px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            font-family: 'Crimson Text', serif;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #a0522d 0%, #8b4513 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 140, 66, 0.3);
+        }
+
+        button:disabled {
+            background: #2a2a2a;
+            border-color: #1a1a1a;
+            cursor: not-allowed;
+            opacity: 0.4;
+            transform: none;
+        }
+
+        .log-panel {
+            grid-column: 1 / -1;
+            max-height: 250px;
+        }
+
+        .log-content {
+            max-height: 200px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .log-entry {
+            padding: 10px;
+            margin-bottom: 8px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 6px;
+            border-left: 3px solid #8b4513;
+            font-size: 0.95em;
+            animation: slideIn 0.3s;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: normal;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .log-entry.success { border-left-color: #4CAF50; color: #a8d5a8; }
+        .log-entry.warning { border-left-color: #ff9800; color: #ffd699; }
+        .log-entry.error { border-left-color: #f44336; color: #ffb3b3; }
+        .log-entry.info { border-left-color: #2196F3; color: #b3d9ff; }
+
+        .quality-poor { color: #888; }
+        .quality-common { color: #fff; }
+        .quality-uncommon { color: #4CAF50; }
+        .quality-rare { color: #2196F3; }
+        .quality-epic { color: #9C27B0; }
+        .quality-legendary { color: #FF9800; }
+        .quality-mythic { color: #f44336; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        body:has(.modal.active) .game-container {
+            filter: blur(8px);
+            pointer-events: none;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, rgba(20, 15, 10, 0.95) 0%, rgba(10, 6, 4, 0.98) 100%);
+            padding: 40px;
+            border-radius: 15px;
+            border: 3px solid #8b4513;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 10px 50px rgba(255, 100, 0, 0.3);
+        }
+
+        .modal-content h2 {
+            font-family: 'Cinzel', serif;
+            color: #ff8c42;
+            margin-bottom: 25px;
+            font-size: 2em;
+            text-align: center;
+        }
+
+        .modal-content input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2em;
+            font-family: 'Crimson Text', serif;
+            background: rgba(74, 37, 17, 0.3);
+            border: 2px solid #4a2511;
+            color: #e8d5b7;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .modal-content input:focus {
+            outline: none;
+            border-color: #ff8c42;
+            box-shadow: 0 0 15px rgba(255, 140, 66, 0.3);
+        }
+
+        .save-slot {
+            background: rgba(74, 37, 17, 0.3);
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #4a2511;
+            margin-bottom: 15px;
+        }
+
+        .save-slot.occupied {
+            border-color: #8b4513;
+        }
+
+        .save-slot h3 {
+            color: #ff8c42;
+            margin-bottom: 10px;
+        }
+
+        .save-info {
+            color: #c4a57b;
+            line-height: 1.6;
+        }
+
+        .menu-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 999;
+            background: linear-gradient(135deg, #8b4513 0%, #654321 100%);
+            color: #e8d5b7;
+            border: 2px solid #4a2511;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            font-family: 'Crimson Text', serif;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+
+        .menu-button:hover {
+            background: linear-gradient(135deg, #a0522d 0%, #8b4513 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(255, 140, 66, 0.3);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 24px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #4a2511;
+            margin-top: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b35 0%, #ff8c42 50%, #ffa500 100%);
+            transition: width 0.3s;
+            box-shadow: 0 0 10px rgba(255, 140, 66, 0.5);
+        }
+
+        .notice-board {
+            background: rgba(74, 37, 17, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #4a2511;
+            margin-bottom: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .notice {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border-left: 4px solid #8b4513;
+        }
+
+        .notice.event { border-left-color: #f44336; }
+        .notice.market { border-left-color: #ff9800; }
+        .notice.rival { border-left-color: #9C27B0; }
+        .notice.royal { border-left-color: #ffd700; }
+        .notice.gossip { border-left-color: #4CAF50; }
+
+        .notice-title {
+            font-weight: bold;
+            color: #ff8c42;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            font-size: 0.9em;
+            letter-spacing: 1px;
+        }
+
+        .stat-point-selector {
+            background: rgba(74, 37, 17, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #4a2511;
+            margin-bottom: 10px;
+        }
+
+        .stat-point-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .stat-point-controls button {
+            padding: 5px 15px;
+            font-size: 1.2em;
+        }
+
+        .gear-slot {
+            background: rgba(74, 37, 17, 0.2);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #4a2511;
+            margin-bottom: 8px;
+        }
+
+        .gear-slot.equipped {
+            border-color: #ffd700;
+            background: rgba(139, 69, 19, 0.3);
+        }
+
+        @media (max-width: 1200px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Save/Load Menu -->
+    <button class="menu-button" onclick="showSaveLoadMenu()">💾 Save/Load</button>
+
+    <div id="saveLoadMenu" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <h2>💾 Save & Load Game</h2>
+            <div id="saveSlots"></div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button onclick="hideSaveLoadMenu()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Startup Modal -->
+    <div id="startupModal" class="modal active">
+        <div class="modal-content">
+            <h2>⚒️ Begin Your Journey ⚒️</h2>
+            <p style="text-align: center; margin-bottom: 20px; color: #c4a57b; font-size: 1.1em;">
+                You've saved enough coin to start your own smithy. What legacy will you forge?
+            </p>
+            <label style="display: block; margin-bottom: 10px; color: #ff8c42; font-weight: bold;">Your Name:</label>
+            <input type="text" id="characterName" placeholder="Enter your name..." maxlength="30">
+            <label style="display: block; margin-bottom: 10px; color: #ff8c42; font-weight: bold;">Forge Name:</label>
+            <input type="text" id="forgeName" placeholder="The Blazing Anvil, Ironheart Forge..." maxlength="40">
+            <div style="text-align: center; margin-top: 30px;">
+                <button onclick="startGame()" style="font-size: 1.2em; padding: 15px 40px;">Begin Forging</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <header>
+            <h1>⚒️ FORGE MASTER ⚒️</h1>
+            <div class="forge-name" id="forgeNameDisplay"></div>
+            <p class="subtitle">Master Smith of the Realm</p>
+        </header>
+
+        <div class="main-layout">
+            <!-- Left Panel: Status -->
+            <div class="panel">
+                <h2>📊 Status</h2>
+                <div class="stat-grid">
+                    <div class="stat">
+                        <div class="stat-label">Gold</div>
+                        <div class="stat-value" id="gold">100</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Reputation</div>
+                        <div class="stat-value" id="reputation">0</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Level</div>
+                        <div class="stat-value" id="level">1</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Items Sold</div>
+                        <div class="stat-value" id="itemsSold">0</div>
+                    </div>
+                </div>
+
+                <div id="levelUpAlert" style="display: none; background: rgba(255, 215, 0, 0.2); padding: 15px; border-radius: 8px; border: 2px solid #ffd700; margin-bottom: 20px; text-align: center;">
+                    <div style="color: #ffd700; font-size: 1.2em; font-weight: bold; margin-bottom: 10px;">LEVEL UP!</div>
+                    <div style="color: #e8d5b7; margin-bottom: 10px;">You have <span id="statPointsAvailable">0</span> stat points to distribute</div>
+                    <button onclick="switchTab('stats')">Distribute Points</button>
+                </div>
+
+                <h3 style="color: #ff8c42; margin: 20px 0 10px 0; font-family: 'Cinzel', serif;">Materials</h3>
+                <div id="materialsInventory"></div>
+
+                <h3 style="color: #ff8c42; margin: 20px 0 10px 0; font-family: 'Cinzel', serif;">Weapons</h3>
+                <div id="weaponsInventory" style="max-height: 300px; overflow-y: auto;"></div>
+            </div>
+
+            <!-- Center Panel: Actions -->
+            <div class="panel">
+                <h2>🔨 Actions</h2>
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab('craft')">Craft</button>
+                    <button class="tab-btn" onclick="switchTab('shop')">Shop</button>
+                    <button class="tab-btn" onclick="switchTab('buy')">Buy</button>
+                    <button class="tab-btn" onclick="switchTab('stats')">Stats</button>
+                    <button class="tab-btn" onclick="switchTab('gear')">Gear</button>
+                    <button class="tab-btn" onclick="switchTab('upgrade')">Upgrades</button>
+                    <button class="tab-btn" onclick="switchTab('services')">Services</button>
+                    <button class="tab-btn" onclick="switchTab('notices')">Notice Board</button>
+                    <button class="tab-btn" onclick="switchTab('market')">Market</button>
+                </div>
+
+                <div id="craft-tab" class="tab-content active">
+                    <div id="craftingOptions"></div>
+                </div>
+
+                <div id="shop-tab" class="tab-content">
+                    <div id="customerList"></div>
+                </div>
+
+                <div id="buy-tab" class="tab-content">
+                    <div id="materialShop"></div>
+                </div>
+
+                <div id="stats-tab" class="tab-content">
+                    <div style="margin-bottom: 20px;">
+                        <div style="font-size: 1.2em; color: #ffd700; margin-bottom: 15px;">
+                            Available Points: <span id="availablePoints">0</span>
+                        </div>
+                        <div id="statDistribution"></div>
+                    </div>
+                </div>
+
+                <div id="gear-tab" class="tab-content">
+                    <p style="margin-bottom: 15px; color: #c4a57b;">Equip armor pieces to gain bonuses. Luck bonuses help you craft better items!</p>
+                    <div id="gearSlots"></div>
+                </div>
+
+                <div id="upgrade-tab" class="tab-content">
+                    <div id="upgradesList"></div>
+                </div>
+
+                <div id="services-tab" class="tab-content">
+                    <h3 style="color: #ff8c42; margin-bottom: 15px;">Financial Services</h3>
+                    <div id="servicesContent"></div>
+                </div>
+
+                <div id="notices-tab" class="tab-content">
+                    <h3 style="color: #ff8c42; margin-bottom: 15px;">Town Notice Board</h3>
+                    <p style="margin-bottom: 15px; color: #c4a57b; font-style: italic;">Check regularly for important information about world events, market trends, and opportunities.</p>
+                    <div class="notice-board" id="noticeBoard"></div>
+                </div>
+
+                <div id="market-tab" class="tab-content">
+                    <h3 style="color: #ff8c42; margin-bottom: 15px;">Market Intelligence</h3>
+                    <p style="margin-bottom: 15px; color: #c4a57b; font-style: italic;">Monitor your competition and market position.</p>
+                    <div id="marketInfo" style="max-height: 500px; overflow-y: auto;"></div>
+                </div>
+            </div>
+
+            <!-- Log Panel -->
+            <div class="panel log-panel">
+                <h2>📜 Activity Log</h2>
+                <div class="log-content" id="gameLog"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // GAME DATA & CONFIGURATION
+        // ============================================
+
+        const GAME_CONFIG = {
+            startingGold: 100,
+            startingMaterials: { iron: 10 },
+            victoryReputation: 100000,
+            baseCustomerInterval: 15000,
+            baseLoanAmount: 200,
+            loanInterestRate: 0.15,
+            contractPayMultiplier: 0.4
+        };
+
+        const materials = {
+            iron: { name: 'Iron', cost: 10, quality: 1, failRate: 0.05 },
+            steel: { name: 'Steel', cost: 30, quality: 2, failRate: 0.10 },
+            silver: { name: 'Silver', cost: 60, quality: 3, failRate: 0.15 },
+            mithril: { name: 'Mithril', cost: 120, quality: 4, failRate: 0.22 },
+            adamantine: { name: 'Adamantine', cost: 250, quality: 5, failRate: 0.30 }
+        };
+
+        const weaponTypes = {
+            dagger: { name: 'Dagger', materials: 1, baseValue: 15, baseTime: 1000 },
+            sword: { name: 'Sword', materials: 2, baseValue: 35, baseTime: 2000 },
+            axe: { name: 'Battle Axe', materials: 3, baseValue: 55, baseTime: 3000 },
+            mace: { name: 'Mace', materials: 2, baseValue: 40, baseTime: 2500 },
+            greatsword: { name: 'Greatsword', materials: 4, baseValue: 90, baseTime: 4000 },
+            warhammer: { name: 'Warhammer', materials: 3, baseValue: 75, baseTime: 3500 }
+        };
+
+        const rarityTiers = [
+            { name: 'Poor', class: 'poor', min: 0, max: 15, valueMulti: 0.6, chanceWeight: 20 },
+            { name: 'Common', class: 'common', min: 15, max: 35, valueMulti: 1.0, chanceWeight: 35 },
+            { name: 'Uncommon', class: 'uncommon', min: 35, max: 55, valueMulti: 1.5, chanceWeight: 25 },
+            { name: 'Rare', class: 'rare', min: 55, max: 75, valueMulti: 2.2, chanceWeight: 12 },
+            { name: 'Epic', class: 'epic', min: 75, max: 90, valueMulti: 3.5, chanceWeight: 6 },
+            { name: 'Legendary', class: 'legendary', min: 90, max: 98, valueMulti: 5.5, chanceWeight: 1.8 },
+            { name: 'Mythic', class: 'mythic', min: 98, max: 100, valueMulti: 10.0, chanceWeight: 0.2 }
+        ];
+
+        const weaponPerks = [
+            { name: 'Flame Strike', desc: '+Fire Damage' },
+            { name: 'Frost Edge', desc: '+Ice Damage' },
+            { name: 'Lightning Fury', desc: '+Lightning Damage' },
+            { name: 'Vampiric', desc: 'Life Steal' },
+            { name: 'Keen Edge', desc: '+Critical Strike' },
+            { name: 'Reinforced', desc: '+Durability' },
+            { name: 'Lightweight', desc: '+Attack Speed' },
+            { name: 'Giant Slayer', desc: '+Damage vs Large' },
+            { name: 'Dragon Bane', desc: '+Damage vs Dragons' },
+            { name: 'Venomous', desc: '+Poison Damage' },
+            { name: 'Holy', desc: '+Damage vs Undead' },
+            { name: 'Shadow Strike', desc: '+Critical Damage' },
+            { name: 'Armor Piercing', desc: 'Ignore Armor' },
+            { name: 'Berserker', desc: '+Damage at Low HP' },
+            { name: 'Parrying', desc: '+Block Chance' },
+            { name: 'Swift', desc: '+Movement Speed' },
+            { name: 'Stunning', desc: 'Chance to Stun' },
+            { name: 'Wounding', desc: 'Bleed Effect' },
+            { name: 'Blessed', desc: '+Holy Power' },
+            { name: 'Cursed', desc: '+Dark Power' },
+            { name: 'Elemental', desc: '+All Elements' },
+            { name: 'Champion\'s', desc: '+All Stats' },
+            { name: 'Masterwork', desc: '+Craftsmanship' },
+            { name: 'Ancient', desc: '+Wisdom' },
+            { name: 'Furious', desc: '+Rage Damage' }
+        ];
+
+        const gearSlots = ['head', 'arms', 'body', 'legs', 'boots', 'hammer', 'accessory'];
+        const gearNames = {
+            head: 'Helmet',
+            arms: 'Gauntlets',
+            body: 'Chestplate',
+            legs: 'Greaves',
+            boots: 'Boots',
+            hammer: 'Hammer',
+            accessory: 'Amulet'
+        };
+
+        const upgrades = [
+            { id: 'betterAnvil', name: 'Superior Anvil', cost: 300, effect: '+Quality bonus', description: 'Improves crafting quality' },
+            { id: 'masterHammer', name: 'Master\'s Hammer', cost: 600, effect: '+15% value', description: 'Increases weapon prices' },
+            { id: 'enhancedForge', name: 'Enhanced Forge', cost: 1000, effect: '-15% fail rate', description: 'Reduces crafting failures' },
+            { id: 'largerWorkshop', name: 'Expand Workshop', cost: 1500, effect: '+Customer freq', description: 'More customers visit' },
+            { id: 'apprenticeHired', name: 'Hire Apprentice', cost: 1200, effect: '-20% craft time', description: 'Speeds up production' },
+            { id: 'qualityTools', name: 'Quality Tools', cost: 2000, effect: '+Rarity chance', description: 'Better rare drops' }
+        ];
+
+        const worldEvents = [
+            { 
+                type: 'event',
+                title: 'WAR DECLARED',
+                messages: [
+                    'Kingdom mobilizes troops - weapons in high demand!',
+                    'Northern border conflict - military seeks suppliers!',
+                    'Civil unrest - guards need equipment urgently!'
+                ],
+                effect: { demandMulti: 2.0, priceMulti: 1.3 }
+            },
+            {
+                type: 'event',
+                title: 'PEACE TREATY',
+                messages: [
+                    'Peace declared - weapon demand declining',
+                    'Diplomatic resolution reached - military downsizing',
+                    'Treaty signed - reduced military spending'
+                ],
+                effect: { demandMulti: 0.6, priceMulti: 0.9 }
+            },
+            {
+                type: 'event',
+                title: 'FESTIVAL SEASON',
+                messages: [
+                    'Grand tournament approaching - knights seek quality arms!',
+                    'Harvest festival - ceremonial weapons in demand',
+                    'Royal celebration - decorative weapons requested'
+                ],
+                effect: { demandMulti: 1.4, priceMulti: 1.2 }
+            },
+            {
+                type: 'event',
+                title: 'HARSH WINTER',
+                messages: [
+                    'Mining operations slowed - metal prices rising!',
+                    'Trade routes blocked - material shortage!',
+                    'Deep freeze - supply chain disrupted'
+                ],
+                effect: { materialCostMulti: 1.5 }
+            },
+            {
+                type: 'event',
+                title: 'ABUNDANT HARVEST',
+                messages: [
+                    'Excellent mining season - metals plentiful!',
+                    'Trade routes thriving - material prices drop',
+                    'Supply surplus - cheap materials available'
+                ],
+                effect: { materialCostMulti: 0.7 }
+            }
+        ];
+
+        const choiceEvents = [
+            {
+                title: 'Mysterious Beggar',
+                description: 'A ragged beggar approaches your forge, asking for food and coin.',
+                choices: [
+                    { text: 'Give generously (20g)', cost: 20, luckChange: 2 },
+                    { text: 'Give a little (5g)', cost: 5, goldGain: 0, luckChange: 0 },
+                    { text: 'Turn them away', cost: 0, luckChange: -1 }
+                ]
+            },
+            {
+                title: 'Strange Coin',
+                description: 'You find an odd coin in the street. It seems valuable.',
+                choices: [
+                    { text: 'Keep it', goldGain: 15, luckChange: 0 },
+                    { text: 'Find the owner', goldGain: 0, luckChange: 3 },
+                    { text: 'Donate to temple', goldGain: 0, luckChange: 1, repGain: 5 }
+                ]
+            },
+            {
+                title: 'Broken Family Heirloom',
+                description: 'While examining an item, you accidentally break a customer\'s heirloom.',
+                choices: [
+                    { text: 'Admit fault & compensate (30g)', cost: 30, luckChange: 0, repGain: 10 },
+                    { text: 'Blame poor craftsmanship', cost: 0, luckChange: -3, repLoss: 5 },
+                    { text: 'Hide the evidence', cost: 0, luckChange: -5, repLoss: 0 }
+                ]
+            },
+            {
+                title: 'Traveling Merchant',
+                description: 'A merchant offers a "lucky charm" for 40 gold. Could be real... or a scam.',
+                choices: [
+                    { text: 'Buy it (40g)', cost: 40, luckChange: { min: -2, max: 5 } },
+                    { text: 'Bargain hard', cost: 20, luckChange: 0, goldGain: 10 },
+                    { text: 'Refuse politely', cost: 0, luckChange: 0 }
+                ]
+            },
+            {
+                title: 'Thief in the Night',
+                description: 'You catch someone trying to steal from your workshop.',
+                choices: [
+                    { text: 'Call the guards', cost: 0, luckChange: 1, repGain: 5 },
+                    { text: 'Let them go', cost: 0, luckChange: 2, materialLoss: 'iron:2' },
+                    { text: 'Demand payment (50g)', goldGain: 50, luckChange: -2 }
+                ]
+            }
+        ];
+
+        // ============================================
+        // GAME STATE
+        // ============================================
+
+        const gameState = {
+            playerName: '',
+            forgeName: '',
+            gold: GAME_CONFIG.startingGold,
+            reputation: 0,
+            level: 1,
+            experience: 0,
+            itemsSold: 0,
+            statPoints: 0,
+            stats: {
+                smithing: 0,
+                efficiency: 0,
+                speed: 0,
+                business: 0
+            },
+            hiddenLuck: 0,
+            materials: { ...GAME_CONFIG.startingMaterials },
+            weapons: [],
+            gear: {},
+            customers: [],
+            rivals: [],
+            upgrades: {},
+            debt: 0,
+            debtCollateral: [],
+            activeEvent: null,
+            eventEndTime: 0,
+            notices: [],
+            nextCustomerTime: 0,
+            nextEventTime: 0,
+            weaponIdCounter: 0,
+            tutorialComplete: false
+        };
+
+        // ============================================
+        // HELPER FUNCTIONS
+        // ============================================
+
+        function log(message, type = '') {
+            const logDiv = document.getElementById('gameLog');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logDiv.insertBefore(entry, logDiv.firstChild);
+            
+            while (logDiv.children.length > 30) {
+                logDiv.removeChild(logDiv.lastChild);
+            }
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        }
+
+        function saveGame(slot = 1) {
+            const saveData = {
+                ...gameState,
+                saveDate: new Date().toISOString(),
+                version: '1.0'
+            };
+            localStorage.setItem(`forgeMasterSave${slot}`, JSON.stringify(saveData));
+            log(`Game saved to slot ${slot}`, 'success');
+        }
+
+        function loadGame(slot = 1) {
+            const saved = localStorage.getItem(`forgeMasterSave${slot}`);
+            if (saved) {
+                const loaded = JSON.parse(saved);
+                Object.assign(gameState, loaded);
+                document.getElementById('forgeNameDisplay').textContent = gameState.forgeName;
+                document.getElementById('startupModal').classList.remove('active');
+                log(`Game loaded from slot ${slot}!`, 'success');
+                updateUI();
+                return true;
+            }
+            return false;
+        }
+
+        function getSaveInfo(slot) {
+            const saved = localStorage.getItem(`forgeMasterSave${slot}`);
+            if (saved) {
+                const data = JSON.parse(saved);
+                return {
+                    exists: true,
+                    forgeName: data.forgeName,
+                    level: data.level,
+                    gold: data.gold,
+                    reputation: data.reputation,
+                    saveDate: new Date(data.saveDate).toLocaleString()
+                };
+            }
+            return { exists: false };
+        }
+
+        function deleteSave(slot) {
+            if (confirm(`Are you sure you want to delete save slot ${slot}?`)) {
+                localStorage.removeItem(`forgeMasterSave${slot}`);
+                log(`Save slot ${slot} deleted`, 'info');
+                updateUI();
+            }
+        }
+
+        function showSaveLoadMenu() {
+            const menu = document.getElementById('saveLoadMenu');
+            menu.classList.add('active');
+            updateSaveLoadUI();
+        }
+
+        function hideSaveLoadMenu() {
+            document.getElementById('saveLoadMenu').classList.remove('active');
+        }
+
+        function updateSaveLoadUI() {
+            const container = document.getElementById('saveSlots');
+            let html = '';
+            
+            for (let i = 1; i <= 2; i++) {
+                const info = getSaveInfo(i);
+                html += `
+                    <div class="save-slot ${info.exists ? 'occupied' : 'empty'}">
+                        <h3>Save Slot ${i}</h3>
+                        ${info.exists ? `
+                            <div class="save-info">
+                                <div><strong>${info.forgeName}</strong></div>
+                                <div>Level ${info.level} | ${info.gold}g | ${info.reputation} Rep</div>
+                                <div style="font-size: 0.9em; color: #888;">Saved: ${info.saveDate}</div>
+                            </div>
+                            <div style="margin-top: 10px; display: flex; gap: 5px;">
+                                <button onclick="saveToSlot(${i})">Overwrite</button>
+                                <button onclick="loadFromSlot(${i})">Load</button>
+                                <button onclick="deleteSave(${i})">Delete</button>
+                            </div>
+                        ` : `
+                            <div class="save-info">
+                                <div style="color: #888; font-style: italic;">Empty Slot</div>
+                            </div>
+                            <div style="margin-top: 10px;">
+                                <button onclick="saveToSlot(${i})">Save Here</button>
+                            </div>
+                        `}
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = html;
+        }
+
+        function saveToSlot(slot) {
+            saveGame(slot);
+            updateSaveLoadUI();
+        }
+
+        function loadFromSlot(slot) {
+            if (loadGame(slot)) {
+                hideSaveLoadMenu();
+            }
+        }
+
+        function getEffectiveLuck() {
+            let totalLuck = gameState.hiddenLuck;
+            Object.values(gameState.gear).forEach(item => {
+                if (item && item.luckBonus) totalLuck += item.luckBonus;
+            });
+            return totalLuck;
+        }
+
+        function getRarityFromScore(score) {
+            const totalWeight = rarityTiers.reduce((sum, tier) => sum + tier.chanceWeight, 0);
+            const adjustedScore = Math.max(0, Math.min(100, score));
+            
+            let cumulativeWeight = 0;
+            for (let tier of rarityTiers) {
+                cumulativeWeight += tier.chanceWeight;
+                const threshold = (cumulativeWeight / totalWeight) * 100;
+                if (adjustedScore <= threshold) return tier;
+            }
+            return rarityTiers[rarityTiers.length - 1];
+        }
+
+        function calculateQualityScore(materialQuality) {
+            let baseScore = materialQuality * 10;
+            
+            // Add stat bonuses
+            baseScore += gameState.stats.smithing * 2;
+            baseScore += gameState.level * 0.5;
+            
+            // Add upgrade bonuses
+            if (gameState.upgrades.betterAnvil) baseScore += 8;
+            if (gameState.upgrades.qualityTools) baseScore += 12;
+            
+            // Add luck influence
+            const effectiveLuck = getEffectiveLuck();
+            const luckBonus = effectiveLuck * 0.3;
+            baseScore += luckBonus;
+            
+            // Add randomness
+            baseScore += (Math.random() * 20) - 10;
+            
+            return Math.max(0, Math.min(100, baseScore));
+        }
+
+        function calculateFailureChance(materialType) {
+            const material = materials[materialType];
+            let failChance = material.failRate;
+            
+            // Reduce with smithing skill
+            failChance -= gameState.stats.smithing * 0.01;
+            
+            // Reduce with upgrades
+            if (gameState.upgrades.enhancedForge) failChance *= 0.85;
+            
+            // Luck influence (negative luck increases fail rate)
+            const effectiveLuck = getEffectiveLuck();
+            if (effectiveLuck < 0) {
+                failChance += Math.abs(effectiveLuck) * 0.005;
+            } else {
+                failChance -= effectiveLuck * 0.003;
+            }
+            
+            return Math.max(0.01, Math.min(0.95, failChance));
+        }
+
+        function generateWeaponPerks(rarity, materialQuality) {
+            const perks = [];
+            let numPerks = 0;
+            
+            const rarityIndex = rarityTiers.findIndex(t => t.name === rarity.name);
+            
+            if (rarityIndex >= 2) numPerks = 1; // Uncommon+
+            if (rarityIndex >= 3) numPerks = 2; // Rare+
+            if (rarityIndex >= 4) numPerks = 3; // Epic+
+            if (rarityIndex >= 5) numPerks = 4; // Legendary+
+            if (rarityIndex >= 6) numPerks = 5; // Mythic
+            
+            const availablePerks = [...weaponPerks];
+            for (let i = 0; i < numPerks && availablePerks.length > 0; i++) {
+                const index = Math.floor(Math.random() * availablePerks.length);
+                perks.push(availablePerks.splice(index, 1)[0]);
+            }
+            
+            return perks;
+        }
+
+        function generateWeaponName(weaponType, rarity, material, perks) {
+            const weapon = weaponTypes[weaponType];
+            const mat = materials[material];
+            
+            let name = '';
+            
+            if (perks.length > 0 && Math.random() > 0.3) {
+                const perk = perks[Math.floor(Math.random() * perks.length)];
+                name = `${perk.name} ${weapon.name}`;
+            } else {
+                name = `${mat.name} ${weapon.name}`;
+            }
+            
+            if (rarity.name === 'Legendary' || rarity.name === 'Mythic') {
+                const prefixes = ['Ancient', 'Eternal', 'Divine', 'Cursed', 'Blessed', 'Forgotten', 'Supreme'];
+                if (Math.random() > 0.5) {
+                    name = `${prefixes[Math.floor(Math.random() * prefixes.length)]} ${name}`;
+                }
+            }
+            
+            return name;
+        }
+
+        // ============================================
+        // CRAFTING SYSTEM
+        // ============================================
+
+        function craftWeapon(weaponType, materialType) {
+            const weapon = weaponTypes[weaponType];
+            const material = materials[materialType];
+            const requiredMaterial = weapon.materials;
+
+            if (gameState.materials[materialType] < requiredMaterial) {
+                log(`Not enough ${material.name}! Need ${requiredMaterial}, have ${gameState.materials[materialType] || 0}`, 'error');
+                return;
+            }
+
+            // Check for failure
+            const failChance = calculateFailureChance(materialType);
+            if (Math.random() < failChance) {
+                gameState.materials[materialType] -= requiredMaterial;
+                log(`Crafting failed! ${requiredMaterial} ${material.name} wasted. The gods were not with you.`, 'error');
+                updateUI();
+                return;
+            }
+
+            gameState.materials[materialType] -= requiredMaterial;
+            
+            // Calculate quality and rarity
+            const qualityScore = calculateQualityScore(material.quality);
+            const rarity = getRarityFromScore(qualityScore);
+            
+            // Generate perks
+            const perks = generateWeaponPerks(rarity, material.quality);
+            
+            // Calculate value
+            let value = weapon.baseValue * material.quality * rarity.valueMulti;
+            value += perks.length * 20;
+            if (gameState.upgrades.masterHammer) value *= 1.15;
+            value = Math.floor(value);
+            
+            // Generate name
+            const name = generateWeaponName(weaponType, rarity, materialType, perks);
+            
+            const newWeapon = {
+                id: gameState.weaponIdCounter++,
+                type: weaponType,
+                name: name,
+                material: materialType,
+                qualityScore: qualityScore,
+                rarity: rarity,
+                value: value,
+                perks: perks
+            };
+
+            gameState.weapons.push(newWeapon);
+            
+            // Add XP
+            const xpGain = Math.floor(material.quality * 10 * (1 + perks.length * 0.2));
+            addExperience(xpGain);
+            
+            log(`Crafted a ${rarity.name} ${name}! Worth ${value} gold (+${xpGain} XP)`, 'success');
+            updateUI();
+        }
+
+        // ============================================
+        // LEVELING SYSTEM
+        // ============================================
+
+        function getXPForLevel(level) {
+            return Math.floor(100 * Math.pow(1.5, level - 1));
+        }
+
+        function addExperience(amount) {
+            gameState.experience += amount;
+            
+            while (gameState.experience >= getXPForLevel(gameState.level)) {
+                gameState.experience -= getXPForLevel(gameState.level);
+                gameState.level++;
+                gameState.statPoints += 3;
+                log(`🎉 LEVEL UP! You are now level ${gameState.level}! You gained 3 stat points.`, 'success');
+                document.getElementById('levelUpAlert').style.display = 'block';
+            }
+        }
+
+        function distributeStat(statName, amount) {
+            if (gameState.statPoints < amount) return;
+            gameState.statPoints -= amount;
+            gameState.stats[statName] += amount;
+            log(`Increased ${statName} by ${amount}`, 'info');
+            updateUI();
+        }
+
+        // ============================================
+        // GEAR SYSTEM
+        // ============================================
+
+        function generateGearPiece(slot) {
+            const baseLuck = gameState.hiddenLuck;
+            
+            // Roll luck bonus (1-10, influenced by hidden luck)
+            let luckBonus = 0;
+            const roll = Math.random() * 100;
+            
+            // Distribution influenced by hidden luck
+            for (let i = 1; i <= 10; i++) {
+                const threshold = Math.pow(0.95, i - baseLuck * 0.1) * 100;
+                if (roll >= threshold) {
+                    luckBonus = i;
+                } else {
+                    break;
+                }
+            }
+            
+            if (luckBonus === 0) luckBonus = 1;
+            
+            return {
+                slot: slot,
+                name: `${gearNames[slot]} of Fortune`,
+                luckBonus: luckBonus
+            };
+        }
+
+        function equipGear(slot, item) {
+            gameState.gear[slot] = item;
+            log(`Equipped ${item.name} (+${item.luckBonus} Luck)`, 'success');
+            updateUI();
+        }
+
+        function unequipGear(slot) {
+            delete gameState.gear[slot];
+            log(`Unequipped ${gearNames[slot]}`, 'info');
+            updateUI();
+        }
+
+        // ============================================
+        // SHOP & CUSTOMER SYSTEM
+        // ============================================
+
+        function generateCustomer() {
+            const types = Object.keys(weaponTypes);
+            const randomType = types[Math.floor(Math.random() * types.length)];
+            const baseValue = weaponTypes[randomType].baseValue;
+            
+            let budgetMultiplier = 1 + (gameState.reputation / 10000);
+            if (gameState.activeEvent && gameState.activeEvent.effect.demandMulti) {
+                budgetMultiplier *= gameState.activeEvent.effect.demandMulti;
+            }
+            
+            const budget = Math.floor(baseValue * (1 + Math.random() * 1.5) * budgetMultiplier);
+            
+            const names = ['Aldric', 'Brenna', 'Corin', 'Dara', 'Eldrin', 'Fiona', 'Gareth', 'Hilda', 
+                          'Ivor', 'Janna', 'Kael', 'Luna', 'Magnus', 'Nessa', 'Orin', 'Petra'];
+            const name = names[Math.floor(Math.random() * names.length)];
+
+            return {
+                id: Date.now() + Math.random(),
+                name: name,
+                desiredType: randomType,
+                budget: budget,
+                minRarity: Math.max(0, Math.floor(gameState.reputation / 15000))
+            };
+        }
+
+        function sellWeapon(weaponId, customerId) {
+            const weapon = gameState.weapons.find(w => w.id === weaponId);
+            const customer = gameState.customers.find(c => c.id === customerId);
+
+            if (!weapon || !customer) return;
+
+            if (weapon.value > customer.budget) {
+                log(`${customer.name} can't afford this weapon!`, 'warning');
+                return;
+            }
+
+            const rarityIndex = rarityTiers.findIndex(t => t.name === weapon.rarity.name);
+            if (rarityIndex < customer.minRarity) {
+                log(`${customer.name} wants higher quality!`, 'warning');
+                return;
+            }
+
+            // Sale price can be higher than weapon value due to market
+            let salePrice = customer.budget;
+            if (gameState.activeEvent && gameState.activeEvent.effect.priceMulti) {
+                salePrice = Math.floor(salePrice * gameState.activeEvent.effect.priceMulti);
+            }
+
+            gameState.gold += salePrice;
+            const repGain = Math.floor(weapon.qualityScore / 5) + weapon.perks.length * 2;
+            gameState.reputation += repGain;
+            gameState.itemsSold++;
+
+            gameState.weapons = gameState.weapons.filter(w => w.id !== weaponId);
+            gameState.customers = gameState.customers.filter(c => c.id !== customerId);
+
+            // Update rival market share
+            updateRivalSales();
+
+            log(`Sold ${weapon.name} to ${customer.name} for ${salePrice} gold! (+${repGain} rep)`, 'success');
+            
+            checkVictory();
+            updateUI();
+        }
+
+        function updateRivalSales() {
+            gameState.rivals.forEach(rival => {
+                if (Math.random() < 0.3) {
+                    rival.sales++;
+                }
+            });
+        }
+
+        // ============================================
+        // RIVAL SYSTEM
+        // ============================================
+
+        function generateRivals() {
+            const archetypes = [
+                { type: 'bulk', name: 'Cheap Goods', priceMulti: 0.7, qualityMulti: 0.8 },
+                { type: 'luxury', name: 'Premium Quality', priceMulti: 1.5, qualityMulti: 1.3 },
+                { type: 'speed', name: 'Fast Service', priceMulti: 1.0, qualityMulti: 0.9 },
+                { type: 'balanced', name: 'Balanced', priceMulti: 1.0, qualityMulti: 1.0 },
+                { type: 'specialist', name: 'Specialist', priceMulti: 1.2, qualityMulti: 1.1 }
+            ];
+
+            const adjectives = ['Crimson', 'Golden', 'Silver', 'Ancient', 'Blazing', 'Iron', 'Mighty', 'Swift', 'Royal'];
+            const nouns = ['Anvil', 'Forge', 'Hammer', 'Smithy', 'Workshop', 'Foundry', 'Arms', 'Steel'];
+            const smithNames = ['Brock', 'Thrain', 'Garrick', 'Borin', 'Aldric', 'Magnus', 'Drunn', 'Thorin'];
+
+            const numRivals = 2 + Math.floor(Math.random() * 3); // 2-4 rivals
+
+            for (let i = 0; i < numRivals; i++) {
+                const archetype = archetypes[Math.floor(Math.random() * archetypes.length)];
+                
+                let name;
+                if (Math.random() > 0.5) {
+                    const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+                    const noun = nouns[Math.floor(Math.random() * nouns.length)];
+                    name = `The ${adj} ${noun}`;
+                } else {
+                    const smith = smithNames[Math.floor(Math.random() * smithNames.length)];
+                    const noun = nouns[Math.floor(Math.random() * nouns.length)];
+                    name = `${smith}'s ${noun}`;
+                }
+
+                gameState.rivals.push({
+                    name: name,
+                    type: archetype.type,
+                    typeName: archetype.name,
+                    priceMulti: archetype.priceMulti,
+                    qualityMulti: archetype.qualityMulti,
+                    sales: Math.floor(Math.random() * 20),
+                    reputation: Math.floor(Math.random() * 100)
+                });
+            }
+        }
+
+        function checkRivalElimination() {
+            const playerMarketShare = gameState.itemsSold / (gameState.itemsSold + gameState.rivals.reduce((sum, r) => sum + r.sales, 0) + 1);
+            
+            gameState.rivals = gameState.rivals.filter(rival => {
+                if (rival.sales < gameState.itemsSold * 0.1 && gameState.reputation > rival.reputation * 2) {
+                    log(`${rival.name} has closed due to lack of business!`, 'info');
+                    addNotice('rival', 'BUSINESS CLOSURE', `${rival.name} unable to compete - shutting down permanently`);
+                    return false;
+                }
+                return true;
+            });
+        }
+
+        // ============================================
+        // EVENTS & NOTICE BOARD
+        // ============================================
+
+        function addNotice(type, title, message) {
+            gameState.notices.unshift({ type, title, message, time: Date.now() });
+            if (gameState.notices.length > 20) gameState.notices.pop();
+        }
+
+        function triggerWorldEvent() {
+            const event = worldEvents[Math.floor(Math.random() * worldEvents.length)];
+            const message = event.messages[Math.floor(Math.random() * event.messages.length)];
+            
+            gameState.activeEvent = event;
+            gameState.eventEndTime = Date.now() + 60000; // 1 minute
+            
+            addNotice(event.type, event.title, message);
+            log(`World Event: ${event.title}`, 'info');
+        }
+
+        function triggerChoiceEvent() {
+            const event = choiceEvents[Math.floor(Math.random() * choiceEvents.length)];
+            
+            const choiceText = event.choices.map((c, i) => `${i + 1}. ${c.text}`).join('\n');
+            const choice = prompt(`${event.title}\n\n${event.description}\n\n${choiceText}\n\nEnter 1, 2, or 3:`);
+            
+            const choiceIndex = parseInt(choice) - 1;
+            if (choiceIndex >= 0 && choiceIndex < event.choices.length) {
+                const selected = event.choices[choiceIndex];
+                
+                if (selected.cost) gameState.gold -= selected.cost;
+                if (selected.goldGain) gameState.gold += selected.goldGain;
+                if (selected.repGain) gameState.reputation += selected.repGain;
+                if (selected.repLoss) gameState.reputation -= selected.repLoss;
+                
+                // Handle luck change
+                if (typeof selected.luckChange === 'number') {
+                    gameState.hiddenLuck += selected.luckChange;
+                } else if (selected.luckChange && selected.luckChange.min !== undefined) {
+                    const luckChange = selected.luckChange.min + Math.floor(Math.random() * (selected.luckChange.max - selected.luckChange.min + 1));
+                    gameState.hiddenLuck += luckChange;
+                }
+                
+                // Handle material loss
+                if (selected.materialLoss) {
+                    const [mat, amount] = selected.materialLoss.split(':');
+                    gameState.materials[mat] = Math.max(0, (gameState.materials[mat] || 0) - parseInt(amount));
+                }
+                
+                log(`Event: ${event.title} - You chose: ${selected.text}`, 'info');
+                updateUI();
+            }
+        }
+
+        function generateMarketGossip() {
+            const templates = [
+                `Citizens praising ${gameState.forgeName} for quality work`,
+                `Merchants note ${gameState.forgeName}'s growing reputation`,
+                `Word spreads of ${gameState.forgeName}'s craftsmanship`,
+                `Buyers recommend ${gameState.forgeName} to friends`,
+                `${gameState.forgeName} gaining market share rapidly`
+            ];
+            
+            if (gameState.rivals.length > 0) {
+                const rival = gameState.rivals[Math.floor(Math.random() * gameState.rivals.length)];
+                const rivalTemplates = [
+                    `${rival.name} struggling to maintain quality`,
+                    `Customers complaining about ${rival.name}`,
+                    `${rival.name} forced to lower prices`,
+                    `Market turning away from ${rival.name}`
+                ];
+                templates.push(...rivalTemplates);
+            }
+            
+            return templates[Math.floor(Math.random() * templates.length)];
+        }
+
+        function generateFlavorGossip() {
+            const gossip = [
+                'Mysterious merchant spotted heading to town',
+                'Temple priest calling for charitable donations',
+                'Fortune teller set up shop in market square',
+                'Old beggar seeking aid near the fountain',
+                'Travelers sharing tales at the tavern',
+                'Storm clouds gathering on horizon',
+                'Harvest festival preparations underway',
+                'Ancient traditions honored at temple',
+                'Street performer entertaining crowds',
+                'Clear night sky - stars shining bright'
+            ];
+            return gossip[Math.floor(Math.random() * gossip.length)];
+        }
+
+        // ============================================
+        // SERVICES (LOANS & CONTRACTS)
+        // ============================================
+
+        function takeLoan(amount) {
+            if (gameState.debt > 0) {
+                log('You already have an outstanding loan!', 'warning');
+                return;
+            }
+
+            gameState.debt = Math.floor(amount * (1 + GAME_CONFIG.loanInterestRate));
+            gameState.gold += amount;
+            
+            log(`Took loan of ${amount} gold. Must repay ${gameState.debt} gold.`, 'info');
+            updateUI();
+        }
+
+        function repayLoan(amount) {
+            if (gameState.gold < amount) {
+                log('Not enough gold!', 'error');
+                return;
+            }
+
+            const payment = Math.min(amount, gameState.debt);
+            gameState.gold -= payment;
+            gameState.debt -= payment;
+            
+            log(`Repaid ${payment} gold. Remaining debt: ${gameState.debt}`, 'success');
+            updateUI();
+        }
+
+        function takeContract(weaponType) {
+            const weapon = weaponTypes[weaponType];
+            const payment = Math.floor(weapon.baseValue * GAME_CONFIG.contractPayMultiplier);
+            
+            gameState.gold += payment;
+            log(`Completed contract: ${weapon.name} for ${payment} gold`, 'success');
+            updateUI();
+        }
+
+        // ============================================
+        // MATERIAL SHOP
+        // ============================================
+
+        function buyMaterial(materialType, amount = 1) {
+            const material = materials[materialType];
+            let cost = material.cost * amount;
+            
+            if (gameState.activeEvent && gameState.activeEvent.effect.materialCostMulti) {
+                cost = Math.floor(cost * gameState.activeEvent.effect.materialCostMulti);
+            }
+
+            if (gameState.gold < cost) {
+                log(`Not enough gold! Need ${cost}, have ${gameState.gold}`, 'error');
+                return;
+            }
+
+            gameState.gold -= cost;
+            gameState.materials[materialType] = (gameState.materials[materialType] || 0) + amount;
+            
+            log(`Purchased ${amount}x ${material.name} for ${cost} gold`, 'success');
+            updateUI();
+        }
+
+        // ============================================
+        // UPGRADES
+        // ============================================
+
+        function purchaseUpgrade(upgradeId) {
+            const upgrade = upgrades.find(u => u.id === upgradeId);
+            if (!upgrade) return;
+
+            if (gameState.upgrades[upgradeId]) {
+                log('Already purchased!', 'warning');
+                return;
+            }
+
+            if (gameState.gold < upgrade.cost) {
+                log(`Not enough gold! Need ${upgrade.cost}`, 'error');
+                return;
+            }
+
+            gameState.gold -= upgrade.cost;
+            gameState.upgrades[upgradeId] = true;
+            
+            log(`Purchased ${upgrade.name}!`, 'success');
+            updateUI();
+        }
+
+        // ============================================
+        // VICTORY & SPECIAL ACTIONS
+        // ============================================
+
+        function checkVictory() {
+            if (gameState.reputation >= GAME_CONFIG.victoryReputation && !gameState.victoryAchieved) {
+                gameState.victoryAchieved = true;
+                setTimeout(() => {
+                    alert(`🎉 VICTORY! 🎉\n\n${gameState.forgeName} has become the LEGENDARY MASTER SMITH of the realm!\n\nReputation: ${gameState.reputation}\nGold Earned: ${gameState.gold}\nItems Sold: ${gameState.itemsSold}\nLevel: ${gameState.level}\n\nYour name will echo through the ages!`);
+                }, 100);
+            }
+        }
+
+        function prayAtTemple() {
+            if (gameState.gold < 50) {
+                log('Temple prayers require 50 gold donation', 'warning');
+                return;
+            }
+
+            gameState.gold -= 50;
+            
+            if (gameState.hiddenLuck < 0) {
+                const boost = Math.min(15, Math.abs(gameState.hiddenLuck));
+                gameState.hiddenLuck += boost;
+                log('You pray at the temple for better fortune...', 'info');
+            } else {
+                log('You pray at the temple for better fortune...', 'info');
+            }
+            
+            updateUI();
+        }
+
+        function makeOffering() {
+            if (gameState.gold < 30) {
+                log('Offerings require 30 gold', 'warning');
+                return;
+            }
+
+            gameState.gold -= 30;
+            
+            if (gameState.hiddenLuck < 0) {
+                const boost = Math.min(10, Math.abs(gameState.hiddenLuck));
+                gameState.hiddenLuck += boost;
+                log('You make an offering to the forge spirits...', 'info');
+            } else {
+                log('You make an offering to the forge spirits...', 'info');
+            }
+            
+            updateUI();
+        }
+
+        // ============================================
+        // UI UPDATES
+        // ============================================
+
+        function updateUI() {
+            // Update stats
+            document.getElementById('gold').textContent = gameState.gold;
+            document.getElementById('reputation').textContent = gameState.reputation.toLocaleString();
+            document.getElementById('level').textContent = gameState.level;
+            document.getElementById('itemsSold').textContent = gameState.itemsSold;
+            document.getElementById('statPointsAvailable').textContent = gameState.statPoints;
+            document.getElementById('availablePoints').textContent = gameState.statPoints;
+
+            if (gameState.statPoints === 0) {
+                document.getElementById('levelUpAlert').style.display = 'none';
+            }
+
+            // Materials inventory
+            const materialsDiv = document.getElementById('materialsInventory');
+            materialsDiv.innerHTML = Object.keys(materials)
+                .map(mat => {
+                    const count = gameState.materials[mat] || 0;
+                    if (count === 0 && mat !== 'iron') return '';
+                    return `
+                        <div class="stat">
+                            <div class="stat-label">${materials[mat].name}</div>
+                            <div class="stat-value">${count}</div>
+                        </div>
+                    `;
+                }).join('');
+
+            // Weapons inventory
+            const weaponsDiv = document.getElementById('weaponsInventory');
+            if (gameState.weapons.length === 0) {
+                weaponsDiv.innerHTML = '<p style="color: #888; font-style: italic;">No weapons crafted</p>';
+            } else {
+                weaponsDiv.innerHTML = gameState.weapons.map(w => `
+                    <div class="item">
+                        <div class="item-info">
+                            <h3 class="quality-${w.rarity.class}">${w.name}</h3>
+                            <div class="item-details">Value: ${w.value}g | Quality: ${Math.floor(w.qualityScore)}/100</div>
+                            ${w.perks.length > 0 ? '<div>' + w.perks.map(p => `<span class="perk-tag">${p.name}</span>`).join('') + '</div>' : ''}
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Crafting options
+            const craftingDiv = document.getElementById('craftingOptions');
+            craftingDiv.innerHTML = Object.keys(weaponTypes).map(type => {
+                const weapon = weaponTypes[type];
+                return `
+                    <div class="item" style="display: flex; justify-content: space-between; align-items: center;">
+                        <div class="item-info">
+                            <h3>${weapon.name}</h3>
+                            <div class="item-details">Materials: ${weapon.materials} | Base Value: ${weapon.baseValue}g</div>
+                        </div>
+                        <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                            ${Object.keys(materials).map(mat => {
+                                const hasEnough = (gameState.materials[mat] || 0) >= weapon.materials;
+                                return `<button onclick="craftWeapon('${type}', '${mat}')" ${!hasEnough ? 'disabled' : ''}>${materials[mat].name}</button>`;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Customers
+            const customersDiv = document.getElementById('customerList');
+            if (gameState.customers.length === 0) {
+                customersDiv.innerHTML = '<p style="color: #888; font-style: italic;">No customers currently...</p>';
+            } else {
+                customersDiv.innerHTML = gameState.customers.map(c => {
+                    const matchingWeapons = gameState.weapons.filter(w => w.type === c.desiredType);
+                    const minRarityName = rarityTiers[c.minRarity]?.name || 'Any';
+                    
+                    return `
+                        <div class="item">
+                            <h3>${c.name}</h3>
+                            <div class="item-details">Wants: ${weaponTypes[c.desiredType].name}</div>
+                            <div class="item-details">Budget: ${c.budget}g | Min Quality: ${minRarityName}</div>
+                            <div style="margin-top: 10px; display: flex; gap: 5px; flex-wrap: wrap;">
+                                ${matchingWeapons.map(w => {
+                                    const rarityIndex = rarityTiers.findIndex(t => t.name === w.rarity.name);
+                                    const canSell = w.value <= c.budget && rarityIndex >= c.minRarity;
+                                    return `<button onclick="sellWeapon(${w.id}, ${c.id})" ${!canSell ? 'disabled' : ''}>${w.name} (${w.value}g)</button>`;
+                                }).join('') || '<span style="color: #888;">No matching weapons</span>'}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Material shop
+            const materialShopDiv = document.getElementById('materialShop');
+            materialShopDiv.innerHTML = Object.keys(materials).map(mat => {
+                const material = materials[mat];
+                let cost = material.cost;
+                if (gameState.activeEvent && gameState.activeEvent.effect.materialCostMulti) {
+                    cost = Math.floor(cost * gameState.activeEvent.effect.materialCostMulti);
+                }
+                
+                return `
+                    <div class="item" style="display: flex; justify-content: space-between; align-items: center;">
+                        <div class="item-info">
+                            <h3>${material.name}</h3>
+                            <div class="item-details">Cost: ${cost}g each | Fail Rate: ${(calculateFailureChance(mat) * 100).toFixed(1)}%</div>
+                        </div>
+                        <div style="display: flex; gap: 5px;">
+                            <button onclick="buyMaterial('${mat}', 1)" ${gameState.gold < cost ? 'disabled' : ''}>Buy 1</button>
+                            <button onclick="buyMaterial('${mat}', 5)" ${gameState.gold < cost * 5 ? 'disabled' : ''}>Buy 5</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Stats distribution
+            const statsDiv = document.getElementById('statDistribution');
+            const statDescriptions = {
+                smithing: 'Improves quality & reduces fail rate',
+                efficiency: 'Reduces material costs (future)',
+                speed: 'Faster crafting speed',
+                business: 'Better prices & customer relations'
+            };
+            
+            statsDiv.innerHTML = Object.keys(gameState.stats).map(stat => `
+                <div class="stat-point-selector">
+                    <div style="display: flex; justify-content: space-between;">
+                        <div>
+                            <div style="font-size: 1.1em; color: #ff8c42; text-transform: capitalize;">${stat}: ${gameState.stats[stat]}</div>
+                            <div style="font-size: 0.9em; color: #c4a57b;">${statDescriptions[stat]}</div>
+                        </div>
+                    </div>
+                    <div class="stat-point-controls">
+                        <button onclick="distributeStat('${stat}', 1)" ${gameState.statPoints < 1 ? 'disabled' : ''}>+1</button>
+                        <button onclick="distributeStat('${stat}', 5)" ${gameState.statPoints < 5 ? 'disabled' : ''}>+5</button>
+                    </div>
+                </div>
+            `).join('');
+
+            // Gear slots
+            const gearDiv = document.getElementById('gearSlots');
+            gearDiv.innerHTML = gearSlots.map(slot => {
+                const equipped = gameState.gear[slot];
+                return `
+                    <div class="gear-slot ${equipped ? 'equipped' : ''}">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-weight: bold; color: #ff8c42;">${gearNames[slot]}</div>
+                                ${equipped ? `
+                                    <div style="color: #ffd700; font-size: 0.9em;">${equipped.name}</div>
+                                    <div style="color: #4CAF50;">+${equipped.luckBonus} Luck</div>
+                                ` : `<div style="color: #888; font-style: italic;">Empty</div>`}
+                            </div>
+                            <div>
+                                ${equipped ? 
+                                    `<button onclick="unequipGear('${slot}')">Unequip</button>` : 
+                                    `<button onclick="craftGear('${slot}')">Craft (100g)</button>`
+                                }
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Upgrades
+            const upgradesDiv = document.getElementById('upgradesList');
+            upgradesDiv.innerHTML = upgrades.map(upgrade => {
+                const purchased = gameState.upgrades[upgrade.id];
+                return `
+                    <div class="item ${purchased ? 'equipped' : ''}">
+                        <h3>${upgrade.name} ${purchased ? '✓' : ''}</h3>
+                        <div class="item-details">${upgrade.description}</div>
+                        <div class="item-details" style="color: #4CAF50;">${upgrade.effect}</div>
+                        <div style="margin-top: 10px;">
+                            ${purchased ? 
+                                '<span style="color: #4CAF50;">Purchased</span>' :
+                                `<button onclick="purchaseUpgrade('${upgrade.id}')" ${gameState.gold < upgrade.cost ? 'disabled' : ''}>Buy (${upgrade.cost}g)</button>`
+                            }
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Services (Loans & Contracts)
+            const servicesDiv = document.getElementById('servicesContent');
+            servicesDiv.innerHTML = `
+                <div class="item">
+                    <h3>Bank Loan</h3>
+                    ${gameState.debt > 0 ? `
+                        <div class="item-details" style="color: #f44336;">Outstanding Debt: ${gameState.debt}g</div>
+                        <div style="margin-top: 10px; display: flex; gap: 5px;">
+                            <button onclick="repayLoan(50)" ${gameState.gold < 50 ? 'disabled' : ''}>Pay 50g</button>
+                            <button onclick="repayLoan(gameState.debt)" ${gameState.gold < gameState.debt ? 'disabled' : ''}>Pay All</button>
+                        </div>
+                    ` : `
+                        <div class="item-details">Borrow gold with ${(GAME_CONFIG.loanInterestRate * 100).toFixed(0)}% interest</div>
+                        <div style="margin-top: 10px; display: flex; gap: 5px;">
+                            <button onclick="takeLoan(100)">Borrow 100g</button>
+                            <button onclick="takeLoan(300)">Borrow 300g</button>
+                            <button onclick="takeLoan(500)">Borrow 500g</button>
+                        </div>
+                    `}
+                </div>
+
+                <h3 style="color: #ff8c42; margin: 20px 0 10px 0;">Contracts (Materials Provided)</h3>
+                ${Object.keys(weaponTypes).map(type => {
+                    const weapon = weaponTypes[type];
+                    const payment = Math.floor(weapon.baseValue * GAME_CONFIG.contractPayMultiplier);
+                    return `
+                        <div class="item">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <h3>${weapon.name} Contract</h3>
+                                    <div class="item-details">Payment: ${payment}g</div>
+                                </div>
+                                <button onclick="takeContract('${type}')">Accept</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+
+                <h3 style="color: #ff8c42; margin: 20px 0 10px 0;">Spiritual Services</h3>
+                <div class="item">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h3>Temple Prayer</h3>
+                            <div class="item-details">Pray for better fortune (50g)</div>
+                        </div>
+                        <button onclick="prayAtTemple()" ${gameState.gold < 50 ? 'disabled' : ''}>Pray</button>
+                    </div>
+                </div>
+                <div class="item">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h3>Forge Offering</h3>
+                            <div class="item-details">Offer to the spirits (30g)</div>
+                        </div>
+                        <button onclick="makeOffering()" ${gameState.gold < 30 ? 'disabled' : ''}>Offer</button>
+                    </div>
+                </div>
+            `;
+
+            // Notice Board
+            const noticeDiv = document.getElementById('noticeBoard');
+            if (gameState.notices.length === 0) {
+                noticeDiv.innerHTML = '<p style="color: #888; font-style: italic;">No recent notices</p>';
+            } else {
+                noticeDiv.innerHTML = gameState.notices.slice(0, 10).map(n => `
+                    <div class="notice ${n.type}">
+                        <div class="notice-title">[${n.type.toUpperCase()}] ${n.title}</div>
+                        <div>${n.message}</div>
+                    </div>
+                `).join('');
+            }
+
+            // Market Info (Rivals)
+            const marketDiv = document.getElementById('marketInfo');
+            if (gameState.rivals.length === 0) {
+                marketDiv.innerHTML = '<p style="color: #888; font-style: italic;">No rivals in market</p>';
+            } else {
+                const totalSales = gameState.itemsSold + gameState.rivals.reduce((sum, r) => sum + r.sales, 0);
+                const playerShare = ((gameState.itemsSold / totalSales) * 100).toFixed(1);
+                
+                marketDiv.innerHTML = `
+                    <div style="margin-bottom: 15px; padding: 10px; background: rgba(74, 37, 17, 0.3); border-radius: 8px;">
+                        <div style="color: #ffd700; font-weight: bold;">Your Market Share: ${playerShare}%</div>
+                    </div>
+                    ${gameState.rivals.map(r => `
+                        <div class="item">
+                            <h3>${r.name}</h3>
+                            <div class="item-details">Type: ${r.typeName}</div>
+                            <div class="item-details">Sales: ${r.sales} | Rep: ${r.reputation}</div>
+                        </div>
+                    `).join('')}
+                `;
+            }
+
+            saveGame();
+        }
+
+        function craftGear(slot) {
+            if (gameState.gold < 100) {
+                log('Crafting gear costs 100 gold!', 'error');
+                return;
+            }
+
+            gameState.gold -= 100;
+            const gear = generateGearPiece(slot);
+            equipGear(slot, gear);
+        }
+
+        // ============================================
+        // GAME LOOP
+        // ============================================
+
+        function gameLoop() {
+            const now = Date.now();
+
+            // Customer generation
+            const customerInterval = gameState.upgrades.largerWorkshop ? 10000 : 15000;
+            const maxCustomers = gameState.upgrades.largerWorkshop ? 5 : 3;
+            
+            if (now - gameState.nextCustomerTime > customerInterval && gameState.customers.length < maxCustomers) {
+                gameState.customers.push(generateCustomer());
+                gameState.nextCustomerTime = now;
+                updateUI();
+            }
+
+            // World events
+            if (now > gameState.eventEndTime && now - gameState.nextEventTime > 45000) {
+                if (Math.random() < 0.3) {
+                    triggerWorldEvent();
+                    gameState.nextEventTime = now;
+                }
+            }
+
+            // Random choice events
+            if (Math.random() < 0.001 && gameState.tutorialComplete) {
+                triggerChoiceEvent();
+            }
+
+            // Random notices
+            if (Math.random() < 0.01) {
+                if (Math.random() < 0.6) {
+                    addNotice('market', 'MARKET NEWS', generateMarketGossip());
+                } else {
+                    addNotice('gossip', 'TOWN GOSSIP', generateFlavorGossip());
+                }
+                updateUI();
+            }
+
+            // Check rival elimination
+            if (gameState.itemsSold > 0 && gameState.itemsSold % 10 === 0) {
+                checkRivalElimination();
+            }
+        }
+
+        // ============================================
+        // GAME START
+        // ============================================
+
+        function startGame() {
+            const charName = document.getElementById('characterName').value.trim();
+            const forgeName = document.getElementById('forgeName').value.trim();
+
+            if (!charName || !forgeName) {
+                alert('Please enter both your name and forge name!');
+                return;
+            }
+
+            gameState.playerName = charName;
+            gameState.forgeName = forgeName;
+            
+            document.getElementById('forgeNameDisplay').textContent = forgeName;
+            document.getElementById('startupModal').classList.remove('active');
+
+            generateRivals();
+            
+            log(`Welcome, ${charName}! ${forgeName} is now open for business!`, 'success');
+            log('Start by buying materials and crafting weapons to sell to customers.', 'info');
+            
+            addNotice('gossip', 'NEW BUSINESS', `${forgeName} opens its doors in town`);
+            
+            gameState.tutorialComplete = true;
+            updateUI();
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            // Check for any existing saves
+            const save1 = getSaveInfo(1);
+            const save2 = getSaveInfo(2);
+            
+            if ((save1.exists || save2.exists) && confirm('You have existing saves. Open Save/Load menu?')) {
+                showSaveLoadMenu();
+            }
+            updateUI();
+        });
+
+        setInterval(gameLoop, 1000);
+        setInterval(() => saveGame(1), 30000); // Auto-save to slot 1 every 30 seconds
+    </script>
+</body>
+</html>
