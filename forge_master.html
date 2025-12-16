@@ -603,6 +603,26 @@
                     <button onclick="switchTab('stats')">Distribute Points</button>
                 </div>
 
+                <!-- Active Quest Panel -->
+                <div id="questPanel" style="display: none; background: linear-gradient(135deg, #2a2a2a, #1a1a1a); padding: 15px; border-radius: 8px; border: 2px solid #4a9eff; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <div style="color: #4a9eff; font-size: 0.9em; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">📋 Active Quest</div>
+                        <div style="color: #c4a57b; font-size: 0.85em;" id="questCount">0 Completed</div>
+                    </div>
+                    <div style="color: #ffd700; font-size: 1.1em; font-weight: bold; margin-bottom: 5px;" id="questName">No Active Quest</div>
+                    <div style="color: #c4a57b; font-size: 0.95em; margin-bottom: 10px;" id="questDesc">Complete quests for rewards!</div>
+                    <div style="margin-bottom: 8px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
+                            <span style="color: #888; font-size: 0.85em;">Progress</span>
+                            <span style="color: #4a9eff; font-size: 0.85em; font-weight: bold;" id="questProgressText">0/0</span>
+                        </div>
+                        <div style="background: #1a1a1a; border: 1px solid #4a4a4a; border-radius: 6px; height: 12px; overflow: hidden;">
+                            <div id="questProgressBar" style="background: linear-gradient(90deg, #4a9eff, #00d4ff); height: 100%; width: 0%; transition: width 0.3s;"></div>
+                        </div>
+                    </div>
+                    <div style="color: #ffd700; font-size: 0.85em;" id="questReward">Reward: --</div>
+                </div>
+
                 <h3 style="color: #ff8c42; margin: 20px 0 10px 0; font-family: 'Cinzel', serif;">Materials</h3>
                 <div id="materialsInventory"></div>
 
@@ -751,7 +771,7 @@
             
             // Wealth Achievements
             wealth: [
-                { id: 'gold_100', name: 'Penny Pincher', desc: 'Accumulate 100 gold', condition: () => gameState.peakGold >= 100, reward: { xp: 20 } },
+                { id: 'gold_250', name: 'Penny Pincher', desc: 'Accumulate 250 gold', condition: () => gameState.peakGold >= 250, reward: { xp: 20 } },
                 { id: 'gold_500', name: 'Well Off', desc: 'Accumulate 500 gold', condition: () => gameState.peakGold >= 500, reward: { xp: 50 } },
                 { id: 'gold_1000', name: 'Wealthy Smith', desc: 'Accumulate 1,000 gold', condition: () => gameState.peakGold >= 1000, reward: { xp: 100 } },
                 { id: 'gold_5000', name: 'Rich Merchant', desc: 'Accumulate 5,000 gold', condition: () => gameState.peakGold >= 5000, reward: { xp: 250 } },
@@ -860,6 +880,141 @@
                 ]
             }
         ];
+
+        // Quest System
+        const QUEST_TEMPLATES = {
+            // Early game quests (Level 1-5)
+            early: [
+                { 
+                    id: 'craft_basic', 
+                    name: 'Forge Fundamentals', 
+                    desc: 'Craft {count} weapons',
+                    type: 'craft',
+                    target: 'count',
+                    values: [3, 5, 7],
+                    reward: { gold: 30, xp: 50 }
+                },
+                { 
+                    id: 'sell_basic', 
+                    name: 'Make Sales', 
+                    desc: 'Sell {count} weapons',
+                    type: 'sell',
+                    target: 'count',
+                    values: [2, 3, 5],
+                    reward: { gold: 40, xp: 40 }
+                },
+                { 
+                    id: 'gold_basic', 
+                    name: 'Build Wealth', 
+                    desc: 'Accumulate {count} gold',
+                    type: 'gold',
+                    target: 'amount',
+                    values: [150, 200, 300],
+                    reward: { xp: 60 }
+                },
+                { 
+                    id: 'material_basic', 
+                    name: 'Stock Up', 
+                    desc: 'Own {count} total materials',
+                    type: 'materials',
+                    target: 'count',
+                    values: [15, 20, 30],
+                    reward: { gold: 25, xp: 30 }
+                }
+            ],
+            
+            // Mid game quests (Level 6-15)
+            mid: [
+                { 
+                    id: 'craft_quality', 
+                    name: 'Quality Craftsmanship', 
+                    desc: 'Craft an {rarity} or better weapon',
+                    type: 'rarity',
+                    target: 'rarity',
+                    values: ['Uncommon', 'Rare', 'Epic'],
+                    rarityIndex: [2, 3, 4],
+                    reward: { gold: 100, xp: 100 }
+                },
+                { 
+                    id: 'sell_volume', 
+                    name: 'Merchant Expert', 
+                    desc: 'Sell {count} weapons',
+                    type: 'sell',
+                    target: 'count',
+                    values: [15, 25, 40],
+                    reward: { gold: 150, xp: 120 }
+                },
+                { 
+                    id: 'reputation_gain', 
+                    name: 'Build Fame', 
+                    desc: 'Reach {count} reputation',
+                    type: 'reputation',
+                    target: 'amount',
+                    values: [1000, 2500, 5000],
+                    reward: { gold: 200, xp: 150 }
+                },
+                { 
+                    id: 'upgrade_purchase', 
+                    name: 'Improve Workshop', 
+                    desc: 'Purchase {count} upgrades',
+                    type: 'upgrades',
+                    target: 'count',
+                    values: [1, 2, 3],
+                    reward: { gold: 100, xp: 100 }
+                },
+                { 
+                    id: 'craft_specific', 
+                    name: 'Specialize', 
+                    desc: 'Craft {count} {weaponType}',
+                    type: 'craftType',
+                    target: 'weaponCount',
+                    weaponTypes: ['sword', 'axe', 'greatsword', 'dagger', 'mace', 'spear'],
+                    values: [5, 8, 10],
+                    reward: { gold: 80, xp: 80 }
+                }
+            ],
+            
+            // Late game quests (Level 16+)
+            late: [
+                { 
+                    id: 'craft_legendary', 
+                    name: 'Legendary Smith', 
+                    desc: 'Craft a {rarity} weapon',
+                    type: 'rarity',
+                    target: 'rarity',
+                    values: ['Legendary', 'Mythic'],
+                    rarityIndex: [5, 6],
+                    reward: { gold: 500, xp: 400 }
+                },
+                { 
+                    id: 'mass_production', 
+                    name: 'Production Line', 
+                    desc: 'Craft {count} weapons',
+                    type: 'craft',
+                    target: 'count',
+                    values: [50, 75, 100],
+                    reward: { gold: 300, xp: 300 }
+                },
+                { 
+                    id: 'defeat_rival', 
+                    name: 'Dominate Market', 
+                    desc: 'Force a rival to close',
+                    type: 'rival',
+                    target: 'defeat',
+                    values: [1],
+                    reward: { gold: 500, xp: 300 }
+                },
+                { 
+                    id: 'wealth_goal', 
+                    name: 'Financial Success', 
+                    desc: 'Accumulate {count} gold',
+                    type: 'gold',
+                    target: 'amount',
+                    values: [2000, 5000, 10000],
+                    reward: { gold: 500, xp: 400 }
+                }
+            ]
+        };
 
         // Fantasy Calendar System
         const CALENDAR = {
@@ -1203,7 +1358,13 @@
                 silver: false,
                 mithril: false,
                 adamantine: false
-            }
+            },
+            // Quest tracking
+            activeQuest: null, // Current quest object
+            questProgress: {}, // Track progress for current quest
+            completedQuests: [], // History of completed quest IDs
+            questsCompleted: 0, // Total count
+            weaponTypeCrafted: {} // Track crafts by weapon type for quests
         };
 
         // ============================================
@@ -1264,6 +1425,212 @@
                 }
             }
             return CHAPTERS[CHAPTERS.length - 1]; // Return final chapter if beyond
+        }
+
+        // ============================================
+        // QUEST SYSTEM
+        // ============================================
+
+        function generateQuest() {
+            // Determine quest pool based on level
+            let pool;
+            if (gameState.level <= 5) {
+                pool = QUEST_TEMPLATES.early;
+            } else if (gameState.level <= 15) {
+                pool = QUEST_TEMPLATES.mid;
+            } else {
+                pool = QUEST_TEMPLATES.late;
+            }
+
+            // Pick random quest template
+            const template = pool[Math.floor(Math.random() * pool.length)];
+            
+            // Generate specific quest from template
+            const quest = { ...template };
+            
+            // Pick random value from values array
+            const valueIndex = Math.floor(Math.random() * quest.values.length);
+            
+            if (quest.type === 'rarity') {
+                quest.targetRarity = quest.values[valueIndex];
+                quest.targetRarityIndex = quest.rarityIndex[valueIndex];
+                quest.desc = quest.desc.replace('{rarity}', quest.targetRarity);
+                quest.requirement = quest.targetRarityIndex;
+            } else if (quest.type === 'craftType') {
+                const weaponType = quest.weaponTypes[Math.floor(Math.random() * quest.weaponTypes.length)];
+                quest.targetWeaponType = weaponType;
+                quest.targetCount = quest.values[valueIndex];
+                quest.desc = quest.desc.replace('{count}', quest.targetCount).replace('{weaponType}', weaponTypes[weaponType].name + 's');
+                quest.requirement = quest.targetCount;
+            } else {
+                quest.targetValue = quest.values[valueIndex];
+                quest.desc = quest.desc.replace('{count}', quest.targetValue);
+                quest.requirement = quest.targetValue;
+            }
+            
+            // Generate unique ID
+            quest.uniqueId = `${quest.id}_${Date.now()}`;
+            
+            return quest;
+        }
+
+        function startQuest() {
+            if (gameState.activeQuest) return; // Already have active quest
+            
+            const quest = generateQuest();
+            gameState.activeQuest = quest;
+            gameState.questProgress = getInitialQuestProgress(quest);
+            
+            log(`📋 New Quest: ${quest.name} - ${quest.desc}`, 'info');
+        }
+
+        function getInitialQuestProgress(quest) {
+            const progress = { current: 0 };
+            
+            // Set initial values based on quest type
+            if (quest.type === 'craft') {
+                progress.current = 0; // Count crafts during quest
+            } else if (quest.type === 'sell') {
+                progress.current = 0; // Count sales during quest
+            } else if (quest.type === 'gold') {
+                progress.current = gameState.gold; // Track from current
+                progress.startGold = gameState.gold;
+            } else if (quest.type === 'reputation') {
+                progress.current = gameState.reputation;
+            } else if (quest.type === 'materials') {
+                progress.current = Object.values(gameState.materials).reduce((sum, count) => sum + count, 0);
+            } else if (quest.type === 'rarity') {
+                progress.current = gameState.bestRarity;
+            } else if (quest.type === 'upgrades') {
+                progress.current = Object.keys(gameState.upgrades).length;
+            } else if (quest.type === 'craftType') {
+                progress.current = gameState.weaponTypeCrafted[quest.targetWeaponType] || 0;
+                progress.startCount = progress.current;
+            } else if (quest.type === 'rival') {
+                progress.current = 0;
+                progress.startDefeated = gameState.rivalsDefeated;
+            }
+            
+            return progress;
+        }
+
+        function updateQuestProgress(action, data = {}) {
+            if (!gameState.activeQuest) return;
+            
+            const quest = gameState.activeQuest;
+            const progress = gameState.questProgress;
+            
+            // Update progress based on action
+            if (quest.type === 'craft' && action === 'craft') {
+                progress.current++;
+            } else if (quest.type === 'sell' && action === 'sell') {
+                progress.current++;
+            } else if (quest.type === 'gold' && action === 'goldChange') {
+                progress.current = gameState.gold;
+            } else if (quest.type === 'reputation' && action === 'repChange') {
+                progress.current = gameState.reputation;
+            } else if (quest.type === 'materials' && action === 'materialChange') {
+                progress.current = Object.values(gameState.materials).reduce((sum, count) => sum + count, 0);
+            } else if (quest.type === 'rarity' && action === 'craft') {
+                progress.current = gameState.bestRarity;
+            } else if (quest.type === 'upgrades' && action === 'upgrade') {
+                progress.current = Object.keys(gameState.upgrades).length;
+            } else if (quest.type === 'craftType' && action === 'craft' && data.weaponType === quest.targetWeaponType) {
+                const craftedSinceStart = (gameState.weaponTypeCrafted[quest.targetWeaponType] || 0) - (progress.startCount || 0);
+                progress.current = craftedSinceStart;
+            } else if (quest.type === 'rival' && action === 'rivalDefeated') {
+                progress.current = gameState.rivalsDefeated - progress.startDefeated;
+            }
+            
+            // Check if quest is complete
+            checkQuestCompletion();
+        }
+
+        function checkQuestCompletion() {
+            if (!gameState.activeQuest) return;
+            
+            const quest = gameState.activeQuest;
+            const progress = gameState.questProgress;
+            let isComplete = false;
+            
+            if (quest.type === 'rarity') {
+                isComplete = progress.current >= quest.requirement;
+            } else if (quest.type === 'rival') {
+                isComplete = progress.current >= quest.requirement;
+            } else {
+                isComplete = progress.current >= quest.requirement;
+            }
+            
+            if (isComplete) {
+                completeQuest();
+            }
+        }
+
+        function completeQuest() {
+            if (!gameState.activeQuest) return;
+            
+            const quest = gameState.activeQuest;
+            
+            // Award rewards
+            let rewardText = '';
+            if (quest.reward.gold) {
+                gameState.gold += quest.reward.gold;
+                rewardText += `${quest.reward.gold} gold`;
+            }
+            if (quest.reward.xp) {
+                addExperience(quest.reward.xp);
+                if (rewardText) rewardText += ' + ';
+                rewardText += `${quest.reward.xp} XP`;
+            }
+            
+            log(`✅ Quest Complete: ${quest.name}! Rewards: ${rewardText}`, 'success');
+            
+            // Track completion
+            gameState.completedQuests.push(quest.uniqueId);
+            gameState.questsCompleted++;
+            
+            // Clear active quest
+            gameState.activeQuest = null;
+            gameState.questProgress = {};
+            
+            // Generate new quest after short delay
+            setTimeout(() => {
+                if (!gameState.activeQuest) {
+                    startQuest();
+                    updateUI();
+                }
+            }, 2000);
+            
+            updateUI();
+        }
+
+        function getQuestProgressText() {
+            if (!gameState.activeQuest) return '';
+            
+            const quest = gameState.activeQuest;
+            const progress = gameState.questProgress;
+            
+            if (quest.type === 'rarity') {
+                const rarityNames = ['Poor', 'Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'Mythic'];
+                const currentRarity = rarityNames[progress.current] || 'None';
+                const targetRarity = quest.targetRarity;
+                return progress.current >= quest.requirement ? `${targetRarity} ✓` : `Current: ${currentRarity}`;
+            } else if (quest.type === 'rival') {
+                return `${progress.current}/${quest.requirement}`;
+            } else {
+                const current = Math.min(progress.current, quest.requirement);
+                return `${current}/${quest.requirement}`;
+            }
+        }
+
+        function getQuestProgressPercentage() {
+            if (!gameState.activeQuest) return 0;
+            
+            const quest = gameState.activeQuest;
+            const progress = gameState.questProgress;
+            
+            const percentage = Math.min(100, Math.floor((progress.current / quest.requirement) * 100));
+            return percentage;
         }
 
         // ============================================
@@ -1585,11 +1952,17 @@
             gameState.weapons.push(newWeapon);
             gameState.totalCrafted++; // Track total crafted
             
+            // Track weapon type crafted for quests
+            gameState.weaponTypeCrafted[weaponType] = (gameState.weaponTypeCrafted[weaponType] || 0) + 1;
+            
             // Add XP
             const xpGain = Math.floor(material.quality * 10 * (1 + perks.length * 0.2));
             addExperience(xpGain);
             
             log(`Crafted a ${rarity.name} ${name}! Worth ${value} gold (+${xpGain} XP)`, 'success');
+            
+            // Update quest progress
+            updateQuestProgress('craft', { weaponType: weaponType });
             
             // Check achievements after crafting
             checkAchievements();
@@ -1819,6 +2192,11 @@
 
             log(`Sold ${weapon.name} to ${customer.name} for ${salePrice} gold! (+${repGain} rep)`, 'success');
             
+            // Update quest progress
+            updateQuestProgress('sell');
+            updateQuestProgress('goldChange');
+            updateQuestProgress('repChange');
+            
             checkVictory();
             checkAchievements(); // Check for sale/gold/reputation achievements
             updateUI();
@@ -1894,6 +2272,7 @@
             
             // Check achievements if any rivals were defeated
             if (gameState.rivals.length < initialRivalCount) {
+                updateQuestProgress('rivalDefeated');
                 checkAchievements();
             }
         }
@@ -2063,6 +2442,11 @@
             }
             
             log(`Purchased ${amount}x ${material.name} for ${cost} gold`, 'success');
+            
+            // Update quest progress
+            updateQuestProgress('materialChange');
+            updateQuestProgress('goldChange');
+            
             updateUI();
         }
 
@@ -2088,6 +2472,11 @@
             gameState.upgrades[upgradeId] = true;
             
             log(`Purchased ${upgrade.name}!`, 'success');
+            
+            // Update quest progress
+            updateQuestProgress('upgrade');
+            updateQuestProgress('goldChange');
+            
             checkAchievements(); // Check for upgrade achievements
             updateUI();
         }
@@ -2459,8 +2848,39 @@
 
             // Achievements Tab
             updateAchievementsUI();
+            
+            // Quest Panel
+            updateQuestUI();
 
             saveGame();
+        }
+
+        function updateQuestUI() {
+            const questPanel = document.getElementById('questPanel');
+            
+            if (gameState.activeQuest) {
+                questPanel.style.display = 'block';
+                
+                const quest = gameState.activeQuest;
+                document.getElementById('questName').textContent = quest.name;
+                document.getElementById('questDesc').textContent = quest.desc;
+                document.getElementById('questProgressText').textContent = getQuestProgressText();
+                document.getElementById('questProgressBar').style.width = `${getQuestProgressPercentage()}%`;
+                document.getElementById('questCount').textContent = `${gameState.questsCompleted} Completed`;
+                
+                // Format reward text
+                let rewardText = 'Reward: ';
+                if (quest.reward.gold) {
+                    rewardText += `${quest.reward.gold} gold`;
+                }
+                if (quest.reward.xp) {
+                    if (quest.reward.gold) rewardText += ' + ';
+                    rewardText += `${quest.reward.xp} XP`;
+                }
+                document.getElementById('questReward').textContent = rewardText;
+            } else {
+                questPanel.style.display = 'none';
+            }
         }
 
         function updateAchievementsUI() {
@@ -2633,6 +3053,10 @@
             
             gameState.tutorialComplete = true;
             checkAchievements(); // Check initial achievements (like starting gold)
+            
+            // Start first quest
+            startQuest();
+            
             updateUI();
         }
 
