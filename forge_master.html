@@ -763,7 +763,7 @@
                 <h2>🔨 Actions</h2>
                 <div class="tabs">
                     <button id="tab-craft" class="tab-btn active" onclick="switchTab('craft')">Craft</button>
-                    <button id="tab-shop" class="tab-btn" onclick="switchTab('shop')">Shop</button>
+                    <button id="tab-shop" class="tab-btn" onclick="switchTab('shop')">Market</button>
                     <button id="tab-buy" class="tab-btn" onclick="switchTab('buy')">Buy</button>
                     <button id="tab-stats" class="tab-btn" onclick="switchTab('stats')" style="display: none;">Stats</button>
                     <button id="tab-gear" class="tab-btn" onclick="switchTab('gear')" style="display: none;">Gear</button>
@@ -990,6 +990,13 @@
                 { id: 'all_upgrades', name: 'Fully Upgraded', desc: 'Purchase all forge upgrades', condition: () => {
                     return upgrades.every(u => gameState.upgrades[u.id]);
                 }, reward: { gold: 1000, xp: 500 } },
+            ],
+            
+            // Hidden Trading Achievements (Market Tiers)
+            trading: [
+                { id: 'fair_trader', name: 'Fair Trader', desc: 'Sold items at a fair price 100 times', condition: () => gameState.marketFairSales >= 100, reward: { marketTier: 1 }, hidden: true },
+                { id: 'market_expert', name: 'Market Expert', desc: 'Sold items at a fair price 250 times', condition: () => gameState.marketFairSales >= 250, reward: { marketTier: 2 }, hidden: true },
+                { id: 'master_merchant', name: 'Master Merchant', desc: 'Sold items at a fair price 1,000 times', condition: () => gameState.marketFairSales >= 1000, reward: { marketTier: 3 }, hidden: true },
             ]
         };
 
@@ -1648,6 +1655,13 @@
             justGeneratedQuest: false, // Prevent immediate completion check after generating quest
             // Crafting UI state
             selectedMaterial: null, // For two-step crafting process
+            // Market system
+            marketListings: [], // Weapons listed on market board
+            soldWeapons: [], // Recently sold weapons log
+            marketFairSales: 0, // Count of fair-priced sales (0.9x - 1.1x)
+            marketTier: 0, // 0 = none, 1 = awareness, 2 = insight, 3 = mastery
+            marketRevenue: 0, // Total gold from market sales
+            lastMarketCheck: Date.now(), // For 30s checks
             // Settings
             autoSaveEnabled: true, // Auto-save toggle (on by default)
             // Feature unlocks
@@ -2567,9 +2581,32 @@
             if (Math.random() < finalFailChance) {
                 gameState.totalFailures++;
                 gameState.isForging = false;
+                
+                // Show failure message in forging panel
+                const panel = document.getElementById('forgingPanel');
+                const resultsDisplay = document.getElementById('forgingResultsDisplay');
+                const eventMessage = document.getElementById('forgingEventMessage');
+                const hammerIcon = document.getElementById('hammerIcon');
+                
+                panel.style.display = 'block';
+                panel.classList.remove('forging-active');
+                eventMessage.innerHTML = `<strong style="color: #f44336; font-size: 1.2em;">💔 CRAFTING FAILED!</strong><br>The weapon crumbles in your hands.`;
+                eventMessage.style.display = 'block';
+                hammerIcon.style.display = 'none';
+                resultsDisplay.style.display = 'none';
+                
                 log(`Crafting failed. The weapon crumbles.`, 'error');
                 checkAchievements();
                 updateUI();
+                
+                // Close panel after 2 seconds
+                setTimeout(() => {
+                    panel.style.display = 'none';
+                    eventMessage.innerHTML = 'The metal glows red-hot in the forge.<br>Your hammer rises and falls with purpose.';
+                    hammerIcon.style.display = 'block';
+                    updateUI();
+                }, 2000);
+                
                 return;
             }
 
@@ -2622,7 +2659,9 @@
                 perks: perks
             };
 
+            // All weapons go to inventory now - player decides how to sell
             gameState.weapons.push(newWeapon);
+            
             gameState.totalCrafted++;
             
             // Track weapon type crafted
@@ -2697,6 +2736,201 @@
                 
                 gameState.focusPoints = Math.min(gameState.maxFocus, gameState.focusPoints + focusToRecover);
                 gameState.lastFocusRegen = now;
+            }
+        }
+
+        // ============================================
+        // MARKET SYSTEM
+        // ============================================
+
+        function calculateOfferChance(listPrice, basePrice) {
+            const ratio = listPrice / basePrice;
+            
+            if (ratio <= 1.0) {
+                // At or below base price = almost guaranteed
+                return 0.95;
+            }
+            
+            // Aggressive exponential decay
+            // 1.0x = 95%, 1.2x = 34%, 1.5x = 10%, 2.0x = 1%, 2.5x+ = 0.5%
+            const chance = 0.95 * Math.pow(0.1, (ratio - 1) * 1.8);
+            
+            return Math.max(0.005, chance); // 0.5% floor
+        }
+
+        function getPriceCategory(listPrice, basePrice) {
+            const ratio = listPrice / basePrice;
+            
+            if (ratio <= 1.1) return { label: 'Fair Price', color: '#4CAF50', emoji: '✓' };
+            if (ratio <= 1.5) return { label: 'High Price', color: '#FFC107', emoji: '⚠️' };
+            if (ratio <= 2.0) return { label: 'Overpriced', color: '#FF9800', emoji: '🔸' };
+            return { label: 'Unrealistic', color: '#f44336', emoji: '❌' };
+        }
+
+        function checkMarketOffers() {
+            // Check every listing for offers (called every 30s or on action)
+            const now = Date.now();
+            
+            gameState.marketListings.forEach(listing => {
+                if (listing.hasOffer) return; // Already has offer waiting
+                
+                const chance = calculateOfferChance(listing.price, listing.basePrice);
+                
+                if (Math.random() < chance) {
+                    // OFFER RECEIVED!
+                    listing.hasOffer = true;
+                    listing.offerPrice = listing.price;
+                    listing.offerTime = now;
+                    
+                    logColored(`💰 Buyer interested in ${listing.weapon.name}!`, listing.weapon.rarity.color);
+                    updateUI();
+                }
+            });
+        }
+
+        function listOnMarket(weaponId, price) {
+            const weapon = gameState.weapons.find(w => w.id === weaponId);
+            if (!weapon) return;
+            
+            // Remove from inventory
+            gameState.weapons = gameState.weapons.filter(w => w.id !== weaponId);
+            
+            // Add to market listings
+            gameState.marketListings.push({
+                id: Date.now() + Math.random(), // Unique ID
+                weapon: weapon,
+                price: parseInt(price),
+                basePrice: weapon.value,
+                listedTime: Date.now(),
+                hasOffer: false,
+                offerPrice: 0,
+                offerTime: 0
+            });
+            
+            updateUI();
+            
+            // Immediately check for offer (might get instant offer if priced well)
+            // Plus hybrid: checks on action
+            setTimeout(() => checkMarketOffers(), 100);
+        }
+
+        function quickSell(weaponId) {
+            const weapon = gameState.weapons.find(w => w.id === weaponId);
+            if (!weapon) return;
+            
+            // Quick sell at 90% of value
+            const salePrice = Math.floor(weapon.value * 0.9);
+            
+            gameState.gold += salePrice;
+            gameState.reputation += Math.floor(weapon.qualityScore / 5) + weapon.perks.length * 2;
+            gameState.itemsSold++;
+            gameState.marketRevenue += salePrice;
+            
+            // Remove from inventory
+            gameState.weapons = gameState.weapons.filter(w => w.id !== weaponId);
+            
+            // Add to recent sales
+            gameState.soldWeapons.push({
+                weapon: weapon,
+                soldTime: Date.now(),
+                price: salePrice,
+                method: 'quick'
+            });
+            
+            if (gameState.soldWeapons.length > 5) {
+                gameState.soldWeapons.shift();
+            }
+            
+            logColored(`Quick sold ${weapon.name} for ${salePrice}g`, weapon.rarity.color);
+            
+            // Update quest progress
+            updateQuestProgress('sell');
+            updateQuestProgress('goldChange');
+            updateQuestProgress('repChange');
+            
+            checkAchievements();
+            checkVictory();
+            updateUI();
+        }
+
+        function acceptOffer(listingId) {
+            const listing = gameState.marketListings.find(l => l.id === listingId);
+            if (!listing) return;
+            
+            const weapon = listing.weapon;
+            const price = listing.offerPrice;
+            
+            gameState.gold += price;
+            gameState.reputation += Math.floor(weapon.qualityScore / 5) + weapon.perks.length * 2;
+            gameState.itemsSold++;
+            gameState.marketRevenue += price;
+            
+            // Check if fair-priced (0.9x - 1.1x)
+            const ratio = price / listing.basePrice;
+            if (ratio >= 0.9 && ratio <= 1.1) {
+                gameState.marketFairSales++;
+                checkMarketTierUnlocks();
+            }
+            
+            // Add to recent sales
+            gameState.soldWeapons.push({
+                weapon: weapon,
+                soldTime: Date.now(),
+                price: price,
+                method: 'market'
+            });
+            
+            if (gameState.soldWeapons.length > 5) {
+                gameState.soldWeapons.shift();
+            }
+            
+            // Remove from market
+            gameState.marketListings = gameState.marketListings.filter(l => l.id !== listingId);
+            
+            logColored(`Market sale: ${weapon.name} for ${price}g`, weapon.rarity.color);
+            
+            // Update quest progress
+            updateQuestProgress('sell');
+            updateQuestProgress('goldChange');
+            updateQuestProgress('repChange');
+            
+            checkAchievements();
+            checkVictory();
+            updateUI();
+        }
+
+        function cancelListing(listingId) {
+            const listing = gameState.marketListings.find(l => l.id === listingId);
+            if (!listing) return;
+            
+            // Return weapon to inventory
+            gameState.weapons.push(listing.weapon);
+            
+            // Remove from market
+            gameState.marketListings = gameState.marketListings.filter(l => l.id !== listingId);
+            
+            updateUI();
+        }
+
+        function checkMarketTierUnlocks() {
+            const sales = gameState.marketFairSales;
+            const currentTier = gameState.marketTier;
+            
+            if (sales >= 100 && currentTier < 1) {
+                gameState.marketTier = 1;
+                gameState.achievements['fair_trader'] = true;
+                log('🎉 Achievement Unlocked: Fair Trader!', 'success');
+                log('Market Awareness: Price categories now shown when listing', 'success');
+            } else if (sales >= 250 && currentTier < 2) {
+                gameState.marketTier = 2;
+                gameState.achievements['market_expert'] = true;
+                log('🎉 Achievement Unlocked: Market Expert!', 'success');
+                log('Market Insight: Exact offer rates now visible', 'success');
+            } else if (sales >= 1000 && currentTier < 3) {
+                gameState.marketTier = 3;
+                gameState.achievements['master_merchant'] = true;
+                log('🎉 Achievement Unlocked: Master Merchant!', 'success');
+                log('Market Mastery: Time estimates & predictions unlocked', 'success');
             }
         }
 
@@ -3507,31 +3741,148 @@
                 `;
             }
 
-            // Customers
+            // Market Tab - Inventory & Listings
             const customersDiv = document.getElementById('customerList');
-            if (gameState.customers.length === 0) {
-                customersDiv.innerHTML = '<p style="color: #888; font-style: italic;">No customers currently...</p>';
-            } else {
-                customersDiv.innerHTML = gameState.customers.map(c => {
-                    const matchingWeapons = gameState.weapons.filter(w => w.type === c.desiredType);
-                    const minRarityName = rarityTiers[c.minRarity]?.name || 'Any';
-                    
-                    return `
-                        <div class="item">
-                            <h3>${c.name}</h3>
-                            <div class="item-details">Wants: ${weaponTypes[c.desiredType].name}</div>
-                            <div class="item-details">Budget: ${c.budget}g | Min Quality: ${minRarityName}</div>
-                            <div style="margin-top: 10px; display: flex; gap: 5px; flex-wrap: wrap;">
-                                ${matchingWeapons.map(w => {
-                                    const rarityIndex = rarityTiers.findIndex(t => t.name === w.rarity.name);
-                                    const canSell = w.value <= c.budget && rarityIndex >= c.minRarity;
-                                    return `<button onclick="sellWeapon(${w.id}, ${c.id})" ${!canSell ? 'disabled' : ''}>${w.name} (${w.value}g)</button>`;
-                                }).join('') || '<span style="color: #888;">No matching weapons</span>'}
-                            </div>
+            
+            let marketHTML = '';
+            
+            // Inventory Section
+            const inventory = gameState.weapons;
+            if (inventory.length > 0) {
+                marketHTML += `
+                    <div style="margin-bottom: 30px;">
+                        <h3 style="color: #ffd700; margin-bottom: 15px;">🎒 Your Inventory</h3>
+                        <div style="display: grid; gap: 15px;">
+                            ${inventory.map(weapon => {
+                                const category = getPriceCategory(weapon.value, weapon.value);
+                                return `
+                                    <div class="item">
+                                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                                            <div style="flex: 1;">
+                                                <h3 style="color: ${weapon.rarity.color};">${weapon.name}</h3>
+                                                <div class="item-details">Quality: ${weapon.qualityScore.toFixed(0)} | ${weapon.perks.length} perks</div>
+                                                <div class="item-details">Market Value: ${weapon.value}g</div>
+                                            </div>
+                                        </div>
+                                        <div style="margin-top: 12px; display: flex; gap: 8px; align-items: center;">
+                                            <button onclick="quickSell(${weapon.id})" style="background: #4CAF50;">
+                                                Quick Sell (${Math.floor(weapon.value * 0.9)}g)
+                                            </button>
+                                            <input type="number" id="price_${weapon.id}" value="${weapon.value}" min="1" style="width: 100px; padding: 6px; background: #2a1810; border: 1px solid #8b4513; color: #ffd700; border-radius: 4px;">
+                                            <button onclick="listOnMarket(${weapon.id}, document.getElementById('price_${weapon.id}').value)">
+                                                List on Market
+                                            </button>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
                         </div>
-                    `;
-                }).join('');
+                    </div>
+                `;
             }
+            
+            // Market Listings Section
+            const listings = gameState.marketListings;
+            if (listings.length > 0) {
+                marketHTML += `
+                    <div style="margin-bottom: 30px;">
+                        <h3 style="color: #ff8c42; margin-bottom: 15px;">📋 Market Listings</h3>
+                        ${listings.map(listing => {
+                            const category = getPriceCategory(listing.price, listing.basePrice);
+                            const offerChance = calculateOfferChance(listing.price, listing.basePrice);
+                            
+                            // Determine what info to show based on market tier
+                            let statusHTML = '';
+                            if (listing.hasOffer) {
+                                statusHTML = `
+                                    <div style="margin-top: 12px; padding: 12px; background: rgba(76, 175, 80, 0.2); border: 2px solid #4CAF50; border-radius: 6px;">
+                                        <div style="color: #4CAF50; font-weight: bold; font-size: 1.1em; margin-bottom: 8px;">
+                                            💰 OFFER RECEIVED!
+                                        </div>
+                                        <div style="color: #c4a57b; margin-bottom: 10px;">
+                                            Buyer offers: <span style="color: #ffd700; font-weight: bold;">${listing.offerPrice}g</span>
+                                        </div>
+                                        <div style="display: flex; gap: 8px;">
+                                            <button onclick="acceptOffer(${listing.id})" style="background: #4CAF50;">Accept Offer</button>
+                                            <button onclick="cancelListing(${listing.id})" style="background: #f44336;">Cancel Listing</button>
+                                        </div>
+                                    </div>
+                                `;
+                            } else {
+                                let tierInfo = '';
+                                if (gameState.marketTier >= 1) {
+                                    tierInfo += `<div style="color: ${category.color};">${category.emoji} ${category.label}</div>`;
+                                }
+                                if (gameState.marketTier >= 2) {
+                                    tierInfo += `<div style="color: #4a9eff;">📊 Offer Rate: ${(offerChance * 100).toFixed(1)}%</div>`;
+                                }
+                                if (gameState.marketTier >= 3) {
+                                    const avgTime = Math.ceil(30 / offerChance);
+                                    tierInfo += `<div style="color: #9c27b0;">⏱️ Avg. Time: ~${avgTime < 60 ? avgTime + 's' : Math.ceil(avgTime / 60) + 'm'}</div>`;
+                                }
+                                
+                                statusHTML = `
+                                    <div style="margin-top: 12px;">
+                                        ${tierInfo || '<div style="color: #888; font-style: italic;">⏳ Seeking buyer...</div>'}
+                                        <button onclick="cancelListing(${listing.id})" style="margin-top: 8px; font-size: 0.85em;">Cancel Listing</button>
+                                    </div>
+                                `;
+                            }
+                            
+                            return `
+                                <div class="item">
+                                    <h3 style="color: ${listing.weapon.rarity.color};">${listing.weapon.name}</h3>
+                                    <div class="item-details">Quality: ${listing.weapon.qualityScore.toFixed(0)} | ${listing.weapon.perks.length} perks</div>
+                                    <div class="item-details">Listed Price: ${listing.price}g (Base: ${listing.basePrice}g)</div>
+                                    ${statusHTML}
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            }
+            
+            // Recent Sales Section
+            const soldWeapons = gameState.soldWeapons;
+            if (soldWeapons.length > 0) {
+                marketHTML += `
+                    <div style="margin-bottom: 30px;">
+                        <h3 style="color: #4CAF50; margin-bottom: 15px;">💰 Recent Sales</h3>
+                        ${soldWeapons.slice().reverse().map(sale => {
+                            const timeSince = Math.floor((Date.now() - sale.soldTime) / 1000);
+                            const timeStr = timeSince < 60 ? `${timeSince}s ago` : `${Math.floor(timeSince / 60)}m ago`;
+                            const method = sale.method === 'quick' ? 'Quick Sale' : 'Market Sale';
+                            return `
+                                <div style="padding: 10px; background: rgba(76, 175, 80, 0.1); border-left: 3px solid #4CAF50; margin-bottom: 8px;">
+                                    <span style="color: ${sale.weapon.rarity.color}; font-weight: bold;">${sale.weapon.name}</span>
+                                    <span style="color: #c4a57b;"> - ${method} for </span>
+                                    <span style="color: #ffd700; font-weight: bold;">${sale.price}g</span>
+                                    <span style="color: #888; font-size: 0.85em; float: right;">${timeStr}</span>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            }
+            
+            // Empty state
+            if (inventory.length === 0 && listings.length === 0 && soldWeapons.length === 0) {
+                marketHTML = `
+                    <div style="text-align: center; padding: 60px 20px; color: #888;">
+                        <div style="font-size: 3em; margin-bottom: 15px;">🏪</div>
+                        <div style="font-size: 1.2em; margin-bottom: 8px;">No Weapons to Sell</div>
+                        <div style="font-size: 0.95em;">
+                            Craft weapons to fill your inventory!<br>
+                            <span style="font-size: 0.85em; color: #666; margin-top: 8px; display: block;">
+                                Quick Sell: Instant gold (90% value)<br>
+                                Market: Set your price, wait for offers
+                            </span>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            customersDiv.innerHTML = marketHTML;
 
             // Material shop
             const materialShopDiv = document.getElementById('materialShop');
@@ -3913,6 +4264,12 @@
             // Check rival elimination
             if (gameState.itemsSold > 0 && gameState.itemsSold % 10 === 0) {
                 checkRivalElimination();
+            }
+            
+            // Check market offers (every 30 seconds)
+            if (now - gameState.lastMarketCheck > 30000) {
+                checkMarketOffers();
+                gameState.lastMarketCheck = now;
             }
         }
 
