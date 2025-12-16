@@ -1,6 +1,6 @@
 # ⚒️ Forge Master - Blacksmith Tycoon
 
-A text-based blacksmith simulation game where you start with a humble forge and work your way to becoming the Legendary Master Smith of the realm.
+A text-based blacksmith simulation game where you start with a humble forge and work your way to becoming the Blacksmith of Legend.
 
 **Live Demo**: https://fuffal0.github.io/Forge-Game/forge_master.html
 
