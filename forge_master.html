@@ -640,10 +640,10 @@
                     <button class="tab-btn" onclick="switchTab('stats')">Stats</button>
                     <button class="tab-btn" onclick="switchTab('gear')">Gear</button>
                     <button class="tab-btn" onclick="switchTab('upgrade')">Upgrades</button>
-                    <button class="tab-btn" onclick="switchTab('achievements')">Achievements</button>
+                    <button class="tab-btn" onclick="switchTab('market')">Market</button>
                     <button class="tab-btn" onclick="switchTab('services')">Services</button>
                     <button class="tab-btn" onclick="switchTab('notices')">Notice Board</button>
-                    <button class="tab-btn" onclick="switchTab('market')">Market</button>
+                    <button class="tab-btn" onclick="switchTab('achievements')">Achievements</button>
                 </div>
 
                 <div id="craft-tab" class="tab-content active">
@@ -2851,6 +2851,11 @@
             
             // Quest Panel
             updateQuestUI();
+            
+            // Check if quest is already complete (for loaded games)
+            if (gameState.activeQuest) {
+                checkQuestCompletion();
+            }
 
             saveGame();
         }
@@ -3021,6 +3026,9 @@
             if (gameState.itemsSold > 0 && gameState.itemsSold % 10 === 0) {
                 checkRivalElimination();
             }
+            
+            // Check quest completion (in case progress was made but not checked)
+            checkQuestCompletion();
         }
 
         // ============================================
